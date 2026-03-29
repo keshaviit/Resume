@@ -6,14 +6,25 @@ import { AppLayout } from './components/layout/AppLayout';
 import { LandingUpload } from './components/landing/LandingUpload';
 import { CommandCenter } from './components/editor/CommandCenter';
 import { DirectorsCut } from './components/preview/DirectorsCut';
+import { PublicProfile } from './components/preview/PublicProfile';
 import { useResumeStore } from './store/useResumeStore';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [step, setStep] = useState<'upload' | 'editor'>('upload');
   const [isInitializing, setIsInitializing] = useState(true);
+  const [publicResumeId, setPublicResumeId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check if URL is asking for a public profile
+    const params = new URLSearchParams(window.location.search);
+    const pId = params.get('p');
+    if (pId) {
+      setPublicResumeId(pId);
+      setIsInitializing(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsInitializing(false);
@@ -44,6 +55,10 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  if (publicResumeId) {
+    return <PublicProfile id={publicResumeId} />;
+  }
 
   if (isInitializing) {
     return <div className="w-full h-screen bg-[#050505] flex items-center justify-center neon-glow"></div>;

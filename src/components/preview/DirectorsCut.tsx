@@ -1,7 +1,10 @@
 
+
+
+
 import { useResumeStore } from '../../store/useResumeStore';
 import { motion } from 'framer-motion';
-import { ExternalLink, Briefcase, Calendar, Building2 } from 'lucide-react';
+import { ExternalLink, Calendar, Building2 } from 'lucide-react';
 
 export function DirectorsCut() {
     const { name, role, summary, skills, projects, experience } = useResumeStore();

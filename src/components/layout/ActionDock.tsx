@@ -1,24 +1,30 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Rocket, Share2, CheckCircle2 } from 'lucide-react';
+import { Download, Rocket, CheckCircle2 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 export function ActionDock() {
     const [copied, setCopied] = useState(false);
 
     const handleShare = async () => {
         try {
-            await navigator.clipboard.writeText(window.location.href);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.id) {
+                const publicUrl = `${window.location.origin}/?p=${session.user.id}`;
+
+                // Copy to clipboard
+                await navigator.clipboard.writeText(publicUrl);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+
+                // Open the link in a new tab so the user can immediately see it!
+                window.open(publicUrl, '_blank');
+            }
         } catch (err) { }
     };
 
     const handleDownload = () => {
         window.print();
-    };
-
-    const handleDeploy = () => {
-        window.open('https://vercel.com/new', '_blank');
     };
 
     return (
@@ -38,23 +44,14 @@ export function ActionDock() {
                     <Download className="w-5 h-5 pointer-events-none" />
                 </button>
 
-                {/* Deploy */}
-                <button
-                    onClick={handleDeploy}
-                    className="flex justify-center items-center p-0 w-14 h-14 rounded-full text-white/70 hover:text-purple-300 hover:bg-white/5 hover:scale-110 active:scale-95 transition-all outline-none relative"
-                    title="Publish to Vercel"
-                >
-                    <Rocket className="w-5 h-5 pointer-events-none" />
-                </button>
-
-                {/* Share Link */}
+                {/* Publish / Share Link */}
                 <div className="relative">
                     <button
                         onClick={handleShare}
-                        className="p-4 rounded-full text-white/70 hover:text-green-300 hover:bg-white/5 hover:scale-110 active:scale-95 transition-all outline-none"
-                        title="Copy Public Link"
+                        className="flex justify-center items-center p-0 w-14 h-14 rounded-full text-white/70 hover:text-purple-300 hover:bg-white/5 hover:scale-110 active:scale-95 transition-all outline-none"
+                        title="Copy Public Profile Link"
                     >
-                        {copied ? <CheckCircle2 className="w-5 h-5 text-green-400 pointer-events-none" /> : <Share2 className="w-5 h-5 pointer-events-none" />}
+                        {copied ? <CheckCircle2 className="w-5 h-5 text-green-400 pointer-events-none" /> : <Rocket className="w-5 h-5 pointer-events-none" />}
                     </button>
 
                     <AnimatePresence>
@@ -63,9 +60,9 @@ export function ActionDock() {
                                 initial={{ opacity: 0, y: 10, scale: 0.9 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -10, scale: 0.9 }}
-                                className="absolute -top-14 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-green-500/20 border border-green-500/30 text-green-300 text-xs font-bold rounded-lg shadow-lg whitespace-nowrap backdrop-blur-xl"
+                                className="absolute -top-14 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold rounded-lg shadow-lg whitespace-nowrap backdrop-blur-xl"
                             >
-                                Copied Link!
+                                Live Link Copied!
                             </motion.div>
                         )}
                     </AnimatePresence>
