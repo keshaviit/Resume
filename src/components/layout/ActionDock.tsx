@@ -7,20 +7,31 @@ export function ActionDock() {
     const [copied, setCopied] = useState(false);
 
     const handleShare = async () => {
+        // Open the blank tab synchronously to prevent popup blockers
+        const newWindow = window.open('', '_blank');
+
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user?.id) {
                 const publicUrl = `${window.location.origin}/?p=${session.user.id}`;
 
-                // Copy to clipboard
-                await navigator.clipboard.writeText(publicUrl);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
+                // Navigate the new tab to the actual url
+                if (newWindow) newWindow.location.href = publicUrl;
 
-                // Open the link in a new tab so the user can immediately see it!
-                window.open(publicUrl, '_blank');
+                try {
+                    // Copy to clipboard (might fail if permissions are denied)
+                    await navigator.clipboard.writeText(publicUrl);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                } catch (clipboardErr) {
+                    console.warn("Clipboard copy failed, but window opened.", clipboardErr);
+                }
+            } else {
+                if (newWindow) newWindow.close();
             }
-        } catch (err) { }
+        } catch (err) {
+            if (newWindow) newWindow.close();
+        }
     };
 
     const handleDownload = () => {
