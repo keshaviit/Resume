@@ -80,25 +80,26 @@ export async function parseResumeWithGemini(file: File) {
 
     try {
         const parsedData = JSON.parse(cleanJsonStr);
+        const newId = crypto.randomUUID();
 
         // Mutate the Zustand store directly with the AI parsed real data
-        const { updateField } = useResumeStore.getState();
-
-        if (parsedData.name) updateField('name', parsedData.name);
-        if (parsedData.role) updateField('role', parsedData.role);
-        if (parsedData.summary) updateField('summary', parsedData.summary);
-        if (parsedData.skills) updateField('skills', parsedData.skills);
+        const store = useResumeStore.getState();
 
         // Ensure IDs exist for map lists
-        if (parsedData.experience) {
-            updateField('experience', parsedData.experience.map((e: any, i: number) => ({ ...e, id: String(i) })));
-        }
-        if (parsedData.education) {
-            updateField('education', parsedData.education.map((e: any, i: number) => ({ ...e, id: String(i) })));
-        }
-        if (parsedData.projects) {
-            updateField('projects', parsedData.projects.map((e: any, i: number) => ({ ...e, id: String(i) })));
-        }
+        const experience = parsedData.experience ? parsedData.experience.map((e: any, i: number) => ({ ...e, id: String(i) })) : [];
+        const education = parsedData.education ? parsedData.education.map((e: any, i: number) => ({ ...e, id: String(i) })) : [];
+        const projects = parsedData.projects ? parsedData.projects.map((e: any, i: number) => ({ ...e, id: String(i) })) : [];
+
+        // load it all at once with the new ID
+        store.loadResume(newId, {
+            name: parsedData.name || '',
+            role: parsedData.role || '',
+            summary: parsedData.summary || '',
+            skills: parsedData.skills || [],
+            experience,
+            education,
+            projects
+        });
 
         return parsedData;
     } catch (e) {

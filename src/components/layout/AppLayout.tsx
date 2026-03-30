@@ -11,9 +11,10 @@ interface AppLayoutProps {
     editor: ReactNode;
     preview: ReactNode;
     step: 'upload' | 'editor';
+    onGoHome?: () => void;
 }
 
-export function AppLayout({ editor, preview, step }: AppLayoutProps) {
+export function AppLayout({ editor, preview, step, onGoHome }: AppLayoutProps) {
     const isSyncing = useResumeStore((state) => state.isSyncing);
 
     return (
@@ -89,7 +90,7 @@ export function AppLayout({ editor, preview, step }: AppLayoutProps) {
             </main>
 
             {/* Global Dock for Editor */}
-            {step === 'editor' && <ActionDock />}
+            {step === 'editor' && <ActionDock onGoHome={onGoHome} />}
         </div>
     );
 }

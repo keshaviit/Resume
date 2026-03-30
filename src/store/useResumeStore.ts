@@ -24,6 +24,9 @@ export interface Project {
 }
 
 export interface ResumeState {
+    // Current Active Local Resume ID
+    activeId: string | null;
+
     // Data
     name: string;
     role: string;
@@ -37,6 +40,7 @@ export interface ResumeState {
     isSyncing: boolean;
 
     // Actions
+    loadResume: (id: string, data: Partial<ResumeState>) => void;
     updateField: (field: string, value: any) => void;
     setSyncing: (status: boolean) => void;
     getImpactScore: () => number;
@@ -77,7 +81,10 @@ const initialData = {
 
 export const useResumeStore = create<ResumeState>((set, get) => ({
     ...initialData,
+    activeId: null,
     isSyncing: false,
+
+    loadResume: (id, data) => set((state) => ({ ...state, ...data, activeId: id })),
 
     updateField: (field, value) => set((state) => ({ ...state, [field]: value })),
 

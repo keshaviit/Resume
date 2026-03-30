@@ -9,9 +9,12 @@ import { DirectorsCut } from './components/preview/DirectorsCut';
 import { PublicProfile } from './components/preview/PublicProfile';
 import { useResumeStore } from './store/useResumeStore';
 
+import { Dashboard } from './components/dashboard/Dashboard';
+import { useHistoryStore } from './store/useHistoryStore';
+
 function App() {
   const [session, setSession] = useState<Session | null>(null);
-  const [step, setStep] = useState<'upload' | 'editor'>('upload');
+  const [step, setStep] = useState<'dashboard' | 'upload' | 'editor'>('dashboard');
   const [isInitializing, setIsInitializing] = useState(true);
   const [publicResumeId, setPublicResumeId] = useState<string | null>(null);
 
@@ -38,14 +41,34 @@ function App() {
         try {
           const { data, error } = await supabase.from('resumes').select('*').eq('user_id', session.user.id).maybeSingle();
           if (data && !error) {
-            const { updateField } = useResumeStore.getState();
-            if (data.name) updateField('name', data.name);
-            if (data.role) updateField('role', data.role);
-            if (data.summary) updateField('summary', data.summary);
-            if (data.skills) updateField('skills', data.skills);
-            if (data.experience) updateField('experience', data.experience);
-            if (data.education) updateField('education', data.education);
-            if (data.projects) updateField('projects', data.projects);
+            const store = useResumeStore.getState();
+            store.loadResume(data.id || 'supabase-main', {
+              name: data.name || '',
+              role: data.role || '',
+              summary: data.summary || '',
+              skills: data.skills || [],
+              experience: data.experience || [],
+              education: data.education || [],
+              projects: data.projects || []
+            });
+
+            // Sync down to history store as well so it shows on Dashboard
+            const hStore = useHistoryStore.getState();
+            hStore.saveResume({
+              id: data.id || 'supabase-main',
+              title: data.role || 'Main Resume',
+              lastUpdated: Date.now(),
+              data: {
+                activeId: data.id || 'supabase-main',
+                name: data.name || '',
+                role: data.role || '',
+                summary: data.summary || '',
+                skills: data.skills || [],
+                experience: data.experience || [],
+                education: data.education || [],
+                projects: data.projects || []
+              }
+            });
           }
         } catch (e) {
           console.error("Resume load error:", e);
@@ -74,11 +97,20 @@ function App() {
 
   return (
     <AppLayout
-      step={step}
+      step={step === 'dashboard' ? 'upload' : step} // AppLayout expects 'upload' or 'editor' mostly for styling/split
+      onGoHome={() => setStep('dashboard')}
       editor={
-        step === 'upload'
-          ? <LandingUpload onUploadComplete={() => setStep('editor')} />
-          : <CommandCenter />
+        step === 'dashboard'
+          ? <Dashboard
+            onCreateNew={() => setStep('upload')}
+            onEditResume={(id, data) => {
+              useResumeStore.getState().loadResume(id, data);
+              setStep('editor');
+            }}
+          />
+          : step === 'upload'
+            ? <LandingUpload onUploadComplete={() => setStep('editor')} />
+            : <CommandCenter />
       }
       preview={<DirectorsCut />}
     />

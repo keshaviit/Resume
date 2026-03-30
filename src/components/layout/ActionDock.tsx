@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Rocket, CheckCircle2 } from 'lucide-react';
+import { Download, Rocket, CheckCircle2, Home } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
-export function ActionDock() {
+interface Props {
+    onGoHome?: () => void;
+}
+
+export function ActionDock({ onGoHome }: Props) {
     const [copied, setCopied] = useState(false);
 
     const handleShare = async () => {
@@ -45,6 +49,17 @@ export function ActionDock() {
             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 print:hidden"
         >
             <div className="flex items-center gap-2 p-2 rounded-[2rem] glass-card border border-white/10 bg-black/60 shadow-[0_0_30px_rgba(34,211,238,0.15)] backdrop-blur-3xl transition-all hover:bg-black/80 hover:border-white/20 hover:shadow-[0_0_40px_rgba(34,211,238,0.25)]">
+
+                {/* Dashboard / Home */}
+                {onGoHome && (
+                    <button
+                        onClick={onGoHome}
+                        className="p-4 rounded-full text-white/70 hover:text-cyan-300 hover:bg-white/5 hover:scale-110 active:scale-95 transition-all outline-none"
+                        title="Back to Dashboard"
+                    >
+                        <Home className="w-5 h-5 pointer-events-none" />
+                    </button>
+                )}
 
                 {/* Download PDF */}
                 <button

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useResumeStore } from '../store/useResumeStore';
 import { supabase } from '../lib/supabase';
+import { useHistoryStore } from '../store/useHistoryStore';
 
 export function useAutoSave() {
     const isSaving = useRef(false);
@@ -40,7 +41,8 @@ export function useAutoSave() {
                             const payload = JSON.parse(currentSnapshot);
                             payload.user_id = session.user.id;
 
-                            // Check if row exists first
+                            // Check if row exists first. Since public sharing relies on user_id, 
+                            // we always sync the ACTIVE one to Supabase's single row for this user.
                             const { data: existing } = await supabase.from('resumes').select('id').eq('user_id', session.user.id).maybeSingle();
 
                             if (existing) {
@@ -53,6 +55,26 @@ export function useAutoSave() {
                         }
                     } catch (e) {
                         console.error('AutoSave error:', e);
+                    }
+
+                    // Always sync to the local history store for the Dashboard
+                    const currentState = useResumeStore.getState();
+                    if (currentState.activeId) {
+                        useHistoryStore.getState().saveResume({
+                            id: currentState.activeId,
+                            title: currentState.role || 'Untitled',
+                            lastUpdated: Date.now(),
+                            data: {
+                                activeId: currentState.activeId,
+                                name: currentState.name,
+                                role: currentState.role,
+                                summary: currentState.summary,
+                                skills: currentState.skills,
+                                experience: currentState.experience,
+                                education: currentState.education,
+                                projects: currentState.projects
+                            }
+                        });
                     }
 
                     isSaving.current = true;
