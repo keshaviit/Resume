@@ -58,10 +58,14 @@ export function DirectorsCut() {
                         </button>
                         <button 
                             className="px-8 py-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm"
-                            onClick={() => {
-                                const activeId = useResumeStore.getState().activeId;
-                                const url = activeId ? `/?p=${activeId}` : window.location.href;
-                                window.open(url, '_blank');
+                            onClick={async () => {
+                                const { supabase } = await import('../../lib/supabase');
+                                const { data: { session } } = await supabase.auth.getSession();
+                                if (session?.user?.id) {
+                                    window.open(`/?p=${session.user.id}`, '_blank');
+                                } else {
+                                    alert('Please log in or save your resume first.');
+                                }
                             }}
                         >
                             View Resume
