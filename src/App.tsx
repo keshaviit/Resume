@@ -73,7 +73,8 @@ function App() {
                 projects: data.projects || [],
                 socials: data.socials || [],
                 avatar_url: data.avatar_url || '',
-                achievements: data.achievements || []
+                achievements: data.achievements || [],
+                theme: 'cyberpunk'
               }
             });
           }

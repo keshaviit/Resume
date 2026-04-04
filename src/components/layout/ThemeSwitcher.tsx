@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Monitor, Moon, Briefcase } from 'lucide-react';
+
+import { useResumeStore } from '../../store/useResumeStore';
 
 type Theme = 'cyberpunk' | 'minimalist' | 'executive';
 
 export function ThemeSwitcher() {
-    const [theme, setTheme] = useState<Theme>('cyberpunk');
+    const { theme, updateField } = useResumeStore();
 
     useEffect(() => {
-        // In a full implementation, this would manipulate document classes or CSS variables
-        // For now we just set a data attribute to show the logic
+        // We set the data-theme attribute, though DirectorsCut relies heavily on the React state directly now.
         document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
 
@@ -20,13 +21,15 @@ export function ThemeSwitcher() {
     ];
 
     return (
-        <div className="relative flex items-center bg-black/40 border border-white/10 rounded-full p-1 backdrop-blur-md">
+        <div className="relative flex items-center bg-black/40 border border-white/10 rounded-full p-1 backdrop-blur-md shadow-2xl z-50">
             {themes.map((t) => {
                 const isActive = theme === t.id;
                 return (
-                    <button
+                    <motion.button
                         key={t.id}
-                        onClick={() => setTheme(t.id)}
+                        onClick={() => updateField('theme', t.id)}
+                        whileHover={{ scale: 1.1, rotateX: 15, rotateY: 15 }}
+                        whileTap={{ scale: 0.95 }}
                         className={`relative flex items-center justify-center w-10 h-8 rounded-full transition-colors duration-200 z-10 ${isActive ? 'text-white' : 'text-white/40 hover:text-white/80'
                             }`}
                         title={t.label}
@@ -34,12 +37,12 @@ export function ThemeSwitcher() {
                         {isActive && (
                             <motion.div
                                 layoutId="theme-bubble"
-                                className="absolute inset-0 bg-white/10 rounded-full border border-white/20"
-                                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                                className="absolute inset-0 bg-white/10 rounded-full border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                                transition={{ type: 'spring', bounce: 0.4, duration: 0.6 }}
                             />
                         )}
-                        <span className="relative z-20">{t.icon}</span>
-                    </button>
+                        <span className="relative z-20 pointer-events-none">{t.icon}</span>
+                    </motion.button>
                 );
             })}
         </div>

@@ -3,19 +3,122 @@
 
 
 import { useResumeStore } from '../../store/useResumeStore';
-import { motion } from 'framer-motion';
-import { ExternalLink, Calendar, Building2, Globe } from 'lucide-react';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { ExternalLink, Calendar, Building2, Globe, Star } from 'lucide-react';
+import React, { useRef } from 'react';
+
+// A specialized 3D Card component
+function ProjectCard3D({ proj, isTop }: { proj: any, isTop: boolean }) {
+    const ref = useRef<HTMLDivElement>(null);
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const rotateX = useTransform(y, [-100, 100], [10, -10]);
+    const rotateY = useTransform(x, [-100, 100], [-10, 10]);
+
+    const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (!ref.current) return;
+        const rect = ref.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        x.set(event.clientX - centerX);
+        y.set(event.clientY - centerY);
+    };
+
+    const handleMouseLeave = () => {
+        x.set(0);
+        y.set(0);
+    };
+
+    return (
+        <div style={{ perspective: 1200 }} className="w-full h-full flex justify-center items-center">
+            <motion.div
+                ref={ref}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+                whileHover={{ scale: 1.02, z: 20 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`relative w-full rounded-3xl border overflow-hidden flex flex-col shadow-2xl transition-all ${isTop ? 'bg-gradient-to-br from-purple-900/40 via-[#0a0b14] to-cyan-900/20 border-purple-500/30 shadow-[0_0_40px_rgba(168,85,247,0.2)]' : 'bg-[#0a0b14]/80 border-white/10 hover:border-cyan-500/30'}`}
+            >
+                {/* Hero Image */}
+                {proj.image_url && (
+                    <div style={{ transform: "translateZ(30px)" }} className="w-full h-64 md:h-72 overflow-hidden border-b border-white/10 shrink-0">
+                        <img src={proj.image_url} alt={proj.title} className="w-full h-full object-cover opacity-90 transition-opacity hover:opacity-100" />
+                    </div>
+                )}
+                
+                <div style={{ transform: "translateZ(40px)" }} className="p-8 flex flex-col flex-1 relative z-10">
+                    <h3 className="text-3xl font-bold font-heading mb-4 text-white tracking-tight">{proj.title}</h3>
+                    <p className="text-white/70 leading-relaxed font-light mb-6 flex-1">{proj.description}</p>
+                    
+                    {proj.key_features && proj.key_features.length > 0 && (
+                        <div className="mb-6">
+                            <h4 className="text-sm uppercase tracking-widest text-[#2222aa] font-bold mb-3 text-cyan-400">Key Features:</h4>
+                            <ul className="space-y-2">
+                                {proj.key_features.map((feature: string, idx: number) => (
+                                    <li key={idx} className="flex items-start text-sm text-white/80">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 mr-3 shrink-0 shadow-[0_0_8px_cyan]" />
+                                        <span>{feature}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-2 mb-8 mt-auto">
+                        {proj.tags?.map((tag: string, tIdx: number) => (
+                            <span key={tIdx} className="px-3 py-1.5 text-xs font-semibold border border-[#1a1b30] rounded-full bg-[#101223] text-purple-200 tracking-wide">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-6 mt-4 pt-6 border-t border-white/10">
+                        {proj.link && (
+                            <a href={proj.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 font-semibold group/link p-2 bg-cyan-500/10 rounded-lg hover:bg-cyan-500/20 transition-all">
+                                <ExternalLink className="w-4 h-4" /> Live Demo
+                            </a>
+                        )}
+                        {proj.github_link && (
+                            <a href={proj.github_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-white/60 hover:text-white font-semibold transition-all">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg> GitHub
+                                <ExternalLink className="w-3 h-3 opacity-50" />
+                            </a>
+                        )}
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    );
+}
 
 export function DirectorsCut() {
-    const { name, role, summary, skills, projects, experience, socials, avatar_url, achievements } = useResumeStore();
+    const { name, role, summary, skills, projects, experience, socials, avatar_url, achievements, theme } = useResumeStore();
 
     // Deduplicate skills to prevent React key warnings
     const uniqueSkills = [...new Set(skills)];
 
+    // Theme logic mapping
+    const isLight = theme === 'minimalist';
+    const isExecutive = theme === 'executive';
+
+    // Theme Variables
+    const bgClass = isLight ? 'bg-slate-50 text-slate-800' : isExecutive ? 'bg-slate-900 text-slate-100' : 'bg-[#0a0b14] text-white';
+    const navBg = isLight ? 'bg-white/80 border-slate-200' : isExecutive ? 'bg-slate-900/80 border-slate-700' : 'bg-black/50 border-white/5';
+
     return (
-        <div className="w-full h-full bg-[#050505] text-white overflow-y-auto overflow-x-hidden relative font-body custom-scrollbar">
+        <div className={`w-full h-full overflow-y-auto overflow-x-hidden relative font-body custom-scrollbar ${bgClass}`}>
+            
+            {/* Cinematic Background Layer */}
+            {!isLight && (
+                <div className="fixed inset-0 pointer-events-none z-0">
+                    <div className="absolute top-[20%] right-[10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-purple-600/10 rounded-full blur-[120px]" />
+                    <div className="absolute bottom-[10%] left-[5%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-cyan-600/10 rounded-full blur-[100px]" />
+                </div>
+            )}
+
             {/* Sticky Navigation Taskbar */}
-            <nav className="sticky top-0 z-50 bg-black/50 backdrop-blur-md border-b border-white/5 py-4 px-12">
+            <nav className={`sticky top-0 z-50 backdrop-blur-md border-b py-4 px-12 ${navBg}`}>
                 <ul className="flex items-center justify-center gap-8 text-sm font-medium text-white/60">
                     <li><a href="#hero" className="hover:text-cyan-400 transition-colors portrait:hidden">Home</a></li>
                     <li><a href="#skills" className="hover:text-cyan-400 transition-colors">Skills</a></li>
@@ -28,48 +131,28 @@ export function DirectorsCut() {
             </nav>
 
             {/* Portfolio Header Canvas */}
-            <section id="hero" className="min-h-[60vh] flex flex-col justify-center px-12 relative overflow-hidden pt-12 pb-12">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
-                <div className="absolute bottom-10 left-10 w-[400px] h-[400px] bg-cyan-500/20 rounded-full blur-[100px] pointer-events-none" />
-
+            <section id="hero" className="min-h-[40vh] flex flex-col justify-center px-12 relative overflow-hidden pt-20 pb-12 z-10">
                 <div className="z-10 relative">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-                        className="inline-block px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-sm font-medium mb-6 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+                        className={`inline-block px-4 py-1.5 rounded-full border text-sm font-medium mb-6 shadow-sm ${isLight ? 'bg-cyan-100 border-cyan-200 text-cyan-800' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]'}`}
                     >
                         {role || 'Professional Role'}
                     </motion.div>
-                    <div className="flex flex-col md:flex-row md:items-center gap-8 mb-6">
-                        {avatar_url && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
-                                className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border border-white/20 shadow-[0_0_30px_rgba(34,211,238,0.2)] shrink-0"
-                            >
-                                <img src={avatar_url} alt={name} className="w-full h-full object-cover" />
-                            </motion.div>
-                        )}
-                        <div>
-                            <motion.h1
-                                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-                                className="text-6xl md:text-7xl font-heading font-bold tracking-tight leading-tight"
-                            >
-                                I'm <span className="bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">{name || 'Your Name'}</span>
-                            </motion.h1>
-                        </div>
-                    </div>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
-                        className="max-w-2xl text-xl text-white/70 leading-relaxed font-light"
+                    
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+                        className="text-6xl md:text-8xl font-heading font-bold tracking-tight leading-tight mb-8"
                     >
-                        {summary || 'Your impactful summary goes here...'}
-                    </motion.p>
+                        I'm <span className={`bg-clip-text text-transparent ${isLight ? 'bg-gradient-to-r from-slate-900 via-blue-700 to-cyan-600' : 'bg-gradient-to-r from-white via-purple-200 to-cyan-200'}`}>{name || 'Your Name'}</span>
+                    </motion.h1>
 
                     <motion.div
                         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
-                        className="mt-12 flex items-center space-x-4"
+                        className="flex items-center space-x-4"
                     >
                         <button 
-                            className="px-8 py-4 bg-white text-black font-semibold rounded-xl hover:bg-white/90 transition-colors"
+                            className={`px-8 py-4 font-semibold rounded-xl transition-colors ${isLight ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-white text-black hover:bg-white/90'}`}
                             onClick={() => {
                                 const linkedIn = socials?.find(s => s.platform.toLowerCase() === 'linkedin');
                                 if (linkedIn && linkedIn.link) {
@@ -82,18 +165,9 @@ export function DirectorsCut() {
                             Contact Me
                         </button>
                         <button 
-                            className="px-8 py-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm"
-                            onClick={async () => {
-                                const { supabase } = await import('../../lib/supabase');
-                                const { data: { session } } = await supabase.auth.getSession();
-                                if (session?.user?.id) {
-                                    window.open(`/?p=${session.user.id}`, '_blank');
-                                } else {
-                                    alert('Please log in or save your resume first.');
-                                }
-                            }}
+                            className={`px-8 py-4 border rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm ${isLight ? 'border-slate-300 text-slate-800 hover:bg-slate-100' : 'border-white/20 text-white'}`}
                         >
-                            View Resume
+                            <a href="#about">About Me</a>
                         </button>
                     </motion.div>
 
@@ -122,7 +196,7 @@ export function DirectorsCut() {
                                         href={social.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/20 hover:border-white/30 text-white/70 hover:text-white transition-all hover:scale-110 flex items-center justify-center"
+                                        className={`p-3 border rounded-full transition-all hover:scale-110 flex items-center justify-center ${isLight ? 'bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200' : 'bg-white/5 border-white/10 hover:bg-white/20 hover:border-white/30 text-white/70 hover:text-white'}`}
                                         title={social.platform}
                                     >
                                         {Icon}
@@ -131,6 +205,32 @@ export function DirectorsCut() {
                             })}
                         </motion.div>
                     )}
+                </div>
+            </section>
+
+            {/* Huge 'About Me' Block */}
+            <section id="about" className="px-12 py-24 relative z-10 w-full flex flex-col md:flex-row items-center gap-16 border-t border-white/5">
+                {avatar_url && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, rotate: -5 }} 
+                        whileInView={{ opacity: 1, scale: 1, rotate: 0 }} 
+                        viewport={{ once: true, margin: "-100px" }}
+                        className={`w-64 h-64 md:w-80 md:h-80 rounded-3xl overflow-hidden shrink-0 ${isLight ? 'border-8 border-white shadow-xl rotate-3' : 'border focus-border shadow-2xl relative'}`}
+                    >
+                        {!isLight && <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/20 to-purple-500/20 mix-blend-overlay z-10" />}
+                        <img src={avatar_url} alt={name} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+                    </motion.div>
+                )}
+                <div className="flex-1 max-w-3xl">
+                    <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+                        <div className="flex items-center gap-3 mb-6">
+                            <Star className={`w-8 h-8 ${isLight?'text-amber-400':'text-cyan-400'}`} />
+                            <h2 className="text-4xl md:text-5xl font-heading font-bold">About Me</h2>
+                        </div>
+                        <p className={`text-xl md:text-2xl leading-relaxed italic ${isLight ? 'text-slate-600' : 'text-white/80'}`}>
+                            "{summary || 'Your impactful summary goes here...'}"
+                        </p>
+                    </motion.div>
                 </div>
             </section>
 
@@ -149,61 +249,13 @@ export function DirectorsCut() {
                 </div>
             </section>
 
-            {/* Selected Work — Cinematic Full-Width Cards */}
-            <section id="projects" className="p-12">
-                <h2 className="text-3xl font-heading font-bold mb-10">Selected Work</h2>
-                <div className="flex flex-col gap-8">
-                    {projects.map((proj, i) => {
-                        const isTop = i === 0;
-                        return (
-                            <motion.div
-                                key={proj.id}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: i * 0.1 }}
-                                className={`group relative rounded-3xl border p-8 md:p-10 transition-all cursor-pointer overflow-hidden hover:-translate-y-1 hover:shadow-2xl ${isTop ? 'bg-gradient-to-br from-purple-500/10 via-transparent to-cyan-500/5 border-purple-500/30 shadow-[0_0_25px_rgba(168,85,247,0.15)]' : 'bg-white/[0.03] border-white/10 hover:border-cyan-500/30'}`}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                {/* Top bar: Badge + Link */}
-                                <div className="flex items-center justify-between mb-6 relative z-10">
-                                    {isTop ? (
-                                        <div className="px-4 py-1.5 text-xs font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30 backdrop-blur-sm shadow-[0_0_10px_rgba(168,85,247,0.3)]">
-                                            Most Impactful
-                                        </div>
-                                    ) : (
-                                        <div className="px-3 py-1 text-xs font-medium text-white/40 border border-white/10 rounded-full">
-                                            Project {i + 1}
-                                        </div>
-                                    )}
-                                    {proj.link && (
-                                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors group/link">
-                                            <span className="hidden md:inline">View Project</span>
-                                            <ExternalLink className="w-4 h-4 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
-                                        </a>
-                                    )}
-                                </div>
-
-                                {/* Content: 2-column */}
-                                <div className="flex flex-col md:flex-row gap-8 relative z-10">
-                                    <div className="flex-1">
-                                        <h3 className={`${isTop ? 'text-4xl' : 'text-3xl'} font-bold font-heading mb-6 tracking-tight leading-tight`}>{proj.title}</h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {proj.tags.map((tag, tIdx) => (
-                                                <span key={`${proj.id}-tag-${tIdx}`} className="px-3 py-1.5 text-xs font-semibold border border-white/10 rounded-lg bg-black/40 text-cyan-100 tracking-wide backdrop-blur-sm group-hover:border-white/20 transition-colors">
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex-[1.5] md:border-l border-white/10 md:pl-10">
-                                        <p className={`text-white/70 leading-relaxed font-light ${isTop ? 'text-lg' : 'text-base'}`}>{proj.description}</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
+            {/* Selected Work — Cinematic 3D Cards */}
+            <section id="projects" className="p-12 relative z-10">
+                <h2 className="text-4xl md:text-5xl font-heading font-bold mb-16 text-center">Selected Work</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
+                    {projects.map((proj, i) => (
+                        <ProjectCard3D key={proj.id} proj={proj} isTop={i % 2 === 0} />
+                    ))}
                 </div>
             </section>
 
@@ -226,10 +278,10 @@ export function DirectorsCut() {
                             className="relative pl-20 pb-14 group last:pb-0"
                         >
                             {/* Timeline dot */}
-                            <div className="absolute left-[22px] top-1 w-[14px] h-[14px] rounded-full border-[3px] border-[#050505] bg-gradient-to-br from-purple-500 to-cyan-500 shadow-[0_0_12px_rgba(168,85,247,0.6)] group-hover:scale-125 transition-transform z-10" />
+                            <div className={`absolute left-[22px] top-1 w-[14px] h-[14px] rounded-full border-[3px] shadow-[0_0_12px_rgba(168,85,247,0.6)] group-hover:scale-125 transition-transform z-10 ${isLight ? 'bg-cyan-500 border-white' : 'border-[#050505] bg-gradient-to-br from-purple-500 to-cyan-500'}`} />
 
                             {/* Card */}
-                            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-7 group-hover:border-purple-500/30 group-hover:bg-white/[0.05] transition-all duration-300 relative overflow-hidden">
+                            <div className={`rounded-2xl border p-7 group-hover:border-purple-500/30 transition-all duration-300 relative overflow-hidden ${isLight ? 'bg-white border-slate-200 group-hover:bg-slate-50 shadow-sm' : 'bg-white/[0.03] border-white/10 group-hover:bg-white/[0.05]'}`}>
                                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                 <div className="relative z-10">
@@ -241,12 +293,12 @@ export function DirectorsCut() {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-1.5 text-purple-300 font-medium mb-5">
+                                    <div className={`flex items-center gap-1.5 font-medium mb-5 ${isLight ? 'text-purple-600' : 'text-purple-300'}`}>
                                         <Building2 className="w-4 h-4" />
                                         {exp.company}
                                     </div>
 
-                                    <p className="text-white/60 text-sm leading-relaxed">{exp.description}</p>
+                                    <p className={`text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-white/60'}`}>{exp.description}</p>
                                 </div>
                             </div>
                         </motion.div>

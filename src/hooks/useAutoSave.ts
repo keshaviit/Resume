@@ -16,7 +16,7 @@ export function useAutoSave() {
             name: s.name, role: s.role, summary: s.summary,
             skills: s.skills, experience: s.experience,
             education: s.education, projects: s.projects, socials: s.socials,
-            avatar_url: s.avatar_url, achievements: s.achievements
+            avatar_url: s.avatar_url, achievements: s.achievements, theme: s.theme
         });
 
         const unsubscribe = useResumeStore.subscribe((state) => {
@@ -27,7 +27,7 @@ export function useAutoSave() {
                 name: state.name, role: state.role, summary: state.summary,
                 skills: state.skills, experience: state.experience,
                 education: state.education, projects: state.projects, socials: state.socials,
-                avatar_url: state.avatar_url, achievements: state.achievements
+                avatar_url: state.avatar_url, achievements: state.achievements, theme: state.theme
             });
 
             if (lastSnapshot && currentSnapshot !== lastSnapshot) {
@@ -42,6 +42,7 @@ export function useAutoSave() {
                         if (session?.user?.id) {
                             const payload = JSON.parse(currentSnapshot);
                             payload.user_id = session.user.id;
+                            delete payload.theme; // dont sync theme to supabase because schema lacks it
 
                             // Check if row exists first. Since public sharing relies on user_id, 
                             // we always sync the ACTIVE one to Supabase's single row for this user.
@@ -77,7 +78,8 @@ export function useAutoSave() {
                                 projects: currentState.projects,
                                 socials: currentState.socials,
                                 avatar_url: currentState.avatar_url,
-                                achievements: currentState.achievements
+                                achievements: currentState.achievements,
+                                theme: currentState.theme
                             }
                         });
                     }

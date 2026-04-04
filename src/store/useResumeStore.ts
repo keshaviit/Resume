@@ -20,7 +20,10 @@ export interface Project {
     title: string;
     description: string;
     link: string;
+    github_link?: string;
+    image_url?: string;
     tags: string[];
+    key_features?: string[];
 }
 
 export interface Social {
@@ -53,6 +56,7 @@ export interface ResumeState {
     socials: Social[];
     avatar_url: string;
     achievements: Achievement[];
+    theme: string;
 
     // App State
     isSyncing: boolean;
@@ -92,6 +96,9 @@ const initialData = {
             title: 'E-Commerce Platform',
             description: 'A full-stack e-commerce solution with Next.js and Stripe integration.',
             link: '#',
+            github_link: '',
+            image_url: 'https://images.unsplash.com/photo-1661956602116-aa6865609028?auto=format&fit=crop&q=80',
+            key_features: ['Real-time inventory syncing', 'Secure Stripe checkouts'],
             tags: ['Next.js', 'Stripe', 'Tailwind']
         }
     ],
@@ -112,7 +119,8 @@ const initialData = {
             platform: 'LinkedIn',
             link: 'https://linkedin.com/in/username'
         }
-    ]
+    ],
+    theme: 'cyberpunk'
 };
 
 export const useResumeStore = create<ResumeState>((set, get) => ({
