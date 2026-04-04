@@ -1,9 +1,81 @@
 import { useResumeStore } from '../../store/useResumeStore';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, useInView } from 'framer-motion';
 import { ExternalLink, Moon, Sun, PlayCircle } from 'lucide-react';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 
-// Custom Trailing Interactive Ball Cursor
+// Pre-computed color palettes
+const BALL_COLORS_LIGHT = [
+    'bg-[#1F6E65] text-white shadow-[0_10px_30px_rgba(31,110,101,0.5)]',
+    'bg-[#F9C34A] text-[#1C2A31] shadow-[0_10px_30px_rgba(249,195,74,0.5)]',
+    'bg-[#F26A5A] text-white shadow-[0_10px_30px_rgba(242,106,90,0.5)]',
+    'bg-[#5A6EF2] text-white shadow-[0_10px_30px_rgba(90,110,242,0.5)]',
+    'bg-[#A855F7] text-white shadow-[0_10px_30px_rgba(168,85,247,0.5)]',
+    'bg-[#22C55E] text-white shadow-[0_10px_30px_rgba(34,197,94,0.5)]',
+];
+const BALL_COLORS_DARK = [
+    'bg-gradient-to-br from-cyan-500 to-teal-700 text-white shadow-[0_10px_40px_rgba(34,211,238,0.7)]',
+    'bg-gradient-to-br from-yellow-400 to-orange-600 text-white shadow-[0_10px_40px_rgba(251,191,36,0.6)]',
+    'bg-gradient-to-br from-rose-500 to-pink-700 text-white shadow-[0_10px_40px_rgba(244,63,94,0.6)]',
+    'bg-gradient-to-br from-indigo-500 to-purple-700 text-white shadow-[0_10px_40px_rgba(99,102,241,0.6)]',
+    'bg-gradient-to-br from-purple-500 to-fuchsia-700 text-white shadow-[0_10px_40px_rgba(168,85,247,0.6)]',
+    'bg-gradient-to-br from-green-500 to-emerald-700 text-white shadow-[0_10px_40px_rgba(34,197,94,0.6)]',
+];
+
+// Pre-seed random positions once at module level — they NEVER re-randomize on re-render
+const SEEDED_POSITIONS = Array.from({ length: 30 }, () => ({
+    x: (Math.random() - 0.5) * 600,
+    rot: (Math.random() - 0.5) * 160,
+}));
+
+// SkillsArena: balls fall ONCE when scrolled into view and permanently STAY DOWN
+function SkillsArena({ skills, isLight }: { skills: string[], isLight: boolean }) {
+    const arenaRef = useRef<HTMLDivElement>(null);
+    const isInView = useInView(arenaRef, { once: true, margin: '-80px' });
+    const ballColors = isLight ? BALL_COLORS_LIGHT : BALL_COLORS_DARK;
+    // memoize slice to avoid re-computing each render
+    const seedPos = useMemo(() => SEEDED_POSITIONS.slice(0, skills.length), [skills.length]);
+
+    return (
+        <div
+            ref={arenaRef}
+            className={`relative w-full h-[600px] rounded-[3rem] overflow-hidden flex flex-wrap justify-center items-end p-8 gap-4 border-2 shadow-inner transition-colors duration-700 ${
+                isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#080810] border-white/5'
+            }`}
+        >
+            {/* Ambient glow orbs */}
+            {!isLight && (
+                <>
+                    <div className="absolute top-10 left-16 w-32 h-32 bg-cyan-600/15 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-rose-600/10 rounded-full blur-3xl pointer-events-none" />
+                </>
+            )}
+
+            {skills.map((skill, i) => (
+                <motion.div
+                    key={skill}
+                    drag
+                    dragConstraints={arenaRef}
+                    dragElastic={0.2}
+                    dragMomentum
+                    initial={{ y: -900, x: seedPos[i]?.x ?? 0, rotate: seedPos[i]?.rot ?? 0, opacity: 0 }}
+                    animate={isInView ? { y: 0, x: 0, rotate: 0, opacity: 1 } : {}}
+                    transition={{ type: 'spring', stiffness: 45, damping: 11, bounce: 0.7, delay: i * 0.07 }}
+                    whileHover={{ scale: 1.14, zIndex: 20 }}
+                    whileTap={{ scale: 0.93 }}
+                    className={`w-28 h-28 md:w-34 md:h-34 rounded-full flex items-center justify-center text-center font-bold text-xs md:text-sm leading-tight px-3 cursor-grab active:cursor-grabbing select-none z-10 relative ${
+                        ballColors[i % ballColors.length]
+                    }`}
+                    style={{ width: '7.5rem', height: '7.5rem' }}
+                >
+                    {skill}
+                </motion.div>
+            ))}
+        </div>
+    );
+}
+
+
 function TrailingCursor() {
     const cursorX = useMotionValue(-100);
     const cursorY = useMotionValue(-100);
@@ -127,7 +199,6 @@ export function DirectorsCut() {
     
     // Derived properties
     const displayedSkillsBox = skills && skills.length > 0 ? skills : ['React', 'Framer Motion', 'Tailwind', 'JavaScript', 'TypeScript', 'Node.js'];
-    const constraintsRef = useRef<HTMLDivElement>(null);
 
     return (
         <div className={`w-full h-full overflow-y-auto overflow-x-hidden relative font-body custom-scrollbar transition-colors duration-700 cursor-none ${isLight ? 'bg-white text-[#18181B]' : 'bg-[#18181B] text-white'}`}>
@@ -209,27 +280,11 @@ export function DirectorsCut() {
             {/* Falling Ball Physics Loop — The 'Skills Arena' */}
             <section id="skills" className={`py-32 px-8 w-full transition-colors duration-700 ${isLight ? 'bg-white' : 'bg-[#18181B]'}`}>
                 <div className="max-w-[1400px] mx-auto text-center pointer-events-auto">
-                    <h2 className={`text-5xl md:text-6xl font-heading font-black tracking-tight mb-6 transition-colors ${isLight ? 'text-[#18181B]' : 'text-white'}`}>Technologies Box</h2>
-                    <p className={`text-lg mb-16 font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Drag and throw them around.</p>
+                    <h2 className={`text-5xl md:text-6xl font-heading font-black tracking-tight mb-4 transition-colors ${isLight ? 'text-[#18181B]' : 'text-white'}`}>Technologies</h2>
+                    <p className={`text-lg mb-16 font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Scroll here — balls drop once and stay. Drag & throw them around!</p>
                     
                     {/* The Constraint Arena */}
-                    <div ref={constraintsRef} className={`relative w-full h-[600px] rounded-[3rem] overflow-hidden flex flex-wrap justify-center items-end p-8 gap-4 border-2 shadow-inner transition-colors duration-700 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#0f0f13] border-white/5'}`}>
-                        {displayedSkillsBox.map((skill, i) => (
-                            <motion.div
-                                key={i}
-                                drag
-                                dragConstraints={constraintsRef}
-                                dragElastic={0.4}
-                                initial={{ y: -800, x: (Math.random() - 0.5) * 400, rotate: Math.random() * 90 }}
-                                whileInView={{ y: 0, x: 0, rotate: 0 }}
-                                viewport={{ once: true, margin: "0px" }}
-                                transition={{ type: "spring", bounce: 0.6, stiffness: 60, delay: i * 0.1 }}
-                                className={`w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center text-center font-bold text-sm md:text-lg shadow-xl cursor-grab active:cursor-grabbing hover:scale-105 transition-colors duration-700 select-none ${isLight ? 'bg-white text-[#1C2A31] border border-slate-200' : 'bg-gradient-to-br from-cyan-900/30 to-purple-900/30 backdrop-blur-xl border border-white/20 text-white shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]'}`}
-                            >
-                                {skill}
-                            </motion.div>
-                        ))}
-                    </div>
+                    <SkillsArena skills={displayedSkillsBox} isLight={isLight} />
                 </div>
             </section>
 
