@@ -23,6 +23,12 @@ export interface Project {
     tags: string[];
 }
 
+export interface Social {
+    id: string;
+    platform: string;
+    link: string;
+}
+
 export interface ResumeState {
     // Current Active Local Resume ID
     activeId: string | null;
@@ -35,6 +41,7 @@ export interface ResumeState {
     experience: Experience[];
     education: Education[];
     projects: Project[];
+    socials: Social[];
 
     // App State
     isSyncing: boolean;
@@ -75,6 +82,13 @@ const initialData = {
             description: 'A full-stack e-commerce solution with Next.js and Stripe integration.',
             link: '#',
             tags: ['Next.js', 'Stripe', 'Tailwind']
+        }
+    ],
+    socials: [
+        {
+            id: '1',
+            platform: 'LinkedIn',
+            link: 'https://linkedin.com/in/username'
         }
     ]
 };

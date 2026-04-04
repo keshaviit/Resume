@@ -4,10 +4,10 @@
 
 import { useResumeStore } from '../../store/useResumeStore';
 import { motion } from 'framer-motion';
-import { ExternalLink, Calendar, Building2 } from 'lucide-react';
+import { ExternalLink, Calendar, Building2, Globe } from 'lucide-react';
 
 export function DirectorsCut() {
-    const { name, role, summary, skills, projects, experience } = useResumeStore();
+    const { name, role, summary, skills, projects, experience, socials } = useResumeStore();
 
     // Deduplicate skills to prevent React key warnings
     const uniqueSkills = [...new Set(skills)];
@@ -43,13 +43,56 @@ export function DirectorsCut() {
                         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
                         className="mt-12 flex items-center space-x-4"
                     >
-                        <button className="px-8 py-4 bg-white text-black font-semibold rounded-xl hover:bg-white/90 transition-colors">
+                        <button 
+                            className="px-8 py-4 bg-white text-black font-semibold rounded-xl hover:bg-white/90 transition-colors"
+                            onClick={() => {
+                                const linkedIn = socials?.find(s => s.platform.toLowerCase() === 'linkedin');
+                                if (linkedIn && linkedIn.link) {
+                                    window.open(linkedIn.link, '_blank');
+                                } else {
+                                    window.location.href = `mailto:?subject=Hello ${name}&body=I saw your portfolio and would like to connect!`;
+                                }
+                            }}
+                        >
                             Contact Me
                         </button>
-                        <button className="px-8 py-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm">
+                        <button 
+                            className="px-8 py-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm"
+                            onClick={() => {
+                                const activeId = useResumeStore.getState().activeId;
+                                const url = activeId ? `/?p=${activeId}` : window.location.href;
+                                window.open(url, '_blank');
+                            }}
+                        >
                             View Resume
                         </button>
                     </motion.div>
+
+                    {/* Socials Row */}
+                    {socials && socials.length > 0 && (
+                        <motion.div 
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}
+                            className="mt-8 flex items-center gap-4"
+                        >
+                            {socials.map(social => {
+                                // Use Globe for all to avoid import errors
+                                let Icon = Globe;
+
+                                return (
+                                    <a 
+                                        key={social.id}
+                                        href={social.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/20 hover:border-white/30 text-white/70 hover:text-white transition-all hover:scale-110"
+                                        title={social.platform}
+                                    >
+                                        <Icon className="w-5 h-5" />
+                                    </a>
+                                );
+                            })}
+                        </motion.div>
+                    )}
                 </div>
             </section>
 

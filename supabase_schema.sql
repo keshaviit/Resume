@@ -9,6 +9,7 @@ create table resumes (
   experience jsonb default '[]'::jsonb,
   education jsonb default '[]'::jsonb,
   projects jsonb default '[]'::jsonb,
+  socials jsonb default '[]'::jsonb,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

@@ -52,7 +52,8 @@ function App() {
               skills: data.skills || [],
               experience: data.experience || [],
               education: data.education || [],
-              projects: data.projects || []
+              projects: data.projects || [],
+              socials: data.socials || []
             });
 
             // Sync down to history store as well so it shows on Dashboard
@@ -69,7 +70,8 @@ function App() {
                 skills: data.skills || [],
                 experience: data.experience || [],
                 education: data.education || [],
-                projects: data.projects || []
+                projects: data.projects || [],
+                socials: data.socials || []
               }
             });
           }

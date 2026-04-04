@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useResumeStore } from '../../store/useResumeStore';
-import { Wand2, User, Briefcase, GraduationCap, Code, X } from 'lucide-react';
+import { Wand2, User, Briefcase, GraduationCap, Code, X, Plus, Trash2, Link, Globe } from 'lucide-react';
 import { useAutoSave } from '../../hooks/useAutoSave';
 
 export function CommandCenter() {
     useAutoSave();
-    const { name, role, summary, skills, projects, updateField } = useResumeStore();
+    const { name, role, summary, skills, projects, experience, socials, updateField } = useResumeStore();
     const [newSkill, setNewSkill] = useState('');
 
     const handleAddSkill = (e: React.KeyboardEvent) => {
@@ -108,22 +108,117 @@ export function CommandCenter() {
                     </div>
                 </div>
 
-                {/* Section: Projects (Stubbed) */}
+                {/* Section: Experience */}
                 <div className="glass-card p-6 space-y-4">
-                    <div className="flex justify-between items-center outline-none">
-                        <h3 className="text-lg font-medium text-white/80 uppercase tracking-widest text-xs flex items-center"><Briefcase className="w-4 h-4 mr-2 text-cyan-400" /> Projects</h3>
+                    <div className="flex justify-between items-center outline-none mb-4">
+                        <h3 className="text-lg font-medium text-white/80 uppercase tracking-widest text-xs flex items-center"><Briefcase className="w-4 h-4 mr-2 text-cyan-400" /> Experience</h3>
+                        <button 
+                            onClick={() => updateField('experience', [...experience, { id: Date.now().toString(), company: 'New Company', role: 'Role', date: 'Date', description: 'Description' }])}
+                            className="bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 px-3 py-1 rounded text-xs flex items-center transition-colors"
+                        >
+                            <Plus className="w-3 h-3 mr-1" /> Add
+                        </button>
+                    </div>
+                    {experience.map((exp, i) => (
+                        <div key={exp.id} className="p-4 bg-white/5 border border-white/10 rounded-xl relative group/exp mb-4">
+                            <button 
+                                onClick={() => updateField('experience', experience.filter(e => e.id !== exp.id))}
+                                className="absolute top-4 right-4 text-white/20 hover:text-red-400 transition-colors"
+                                title="Delete Experience"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                            <div className="grid grid-cols-2 gap-4 mb-3 pr-8">
+                                <input
+                                    value={exp.role}
+                                    onChange={(e) => {
+                                        const newExp = [...experience];
+                                        newExp[i].role = e.target.value;
+                                        updateField('experience', newExp);
+                                    }}
+                                    className="w-full bg-transparent border-b border-white/20 focus:border-cyan-400 outline-none pb-1 font-bold text-lg"
+                                    placeholder="Role (e.g. Software Engineer)"
+                                />
+                                <input
+                                    value={exp.company}
+                                    onChange={(e) => {
+                                        const newExp = [...experience];
+                                        newExp[i].company = e.target.value;
+                                        updateField('experience', newExp);
+                                    }}
+                                    className="w-full bg-transparent border-b border-white/20 focus:border-cyan-400 outline-none pb-1 text-purple-300"
+                                    placeholder="Company"
+                                />
+                                <input
+                                    value={exp.date}
+                                    onChange={(e) => {
+                                        const newExp = [...experience];
+                                        newExp[i].date = e.target.value;
+                                        updateField('experience', newExp);
+                                    }}
+                                    className="w-full bg-transparent border-b border-white/20 focus:border-cyan-400 outline-none pb-1 text-sm text-white/50 col-span-2"
+                                    placeholder="Date Range (e.g. Jan 2021 - Present)"
+                                />
+                            </div>
+                            <textarea
+                                value={exp.description}
+                                onChange={(e) => {
+                                    const newExp = [...experience];
+                                    newExp[i].description = e.target.value;
+                                    updateField('experience', newExp);
+                                }}
+                                className="w-full bg-transparent outline-none text-sm text-white/70 resize-y min-h-[60px]"
+                                placeholder="Describe your achievements..."
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Section: Projects */}
+                <div className="glass-card p-6 space-y-4">
+                    <div className="flex justify-between items-center outline-none mb-4">
+                        <h3 className="text-lg font-medium text-white/80 uppercase tracking-widest text-xs flex items-center"><Code className="w-4 h-4 mr-2 text-cyan-400" /> Projects</h3>
+                        <button 
+                            onClick={() => updateField('projects', [...projects, { id: Date.now().toString(), title: 'New Project', description: 'Description', link: '', tags: [] }])}
+                            className="bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 px-3 py-1 rounded text-xs flex items-center transition-colors"
+                        >
+                            <Plus className="w-3 h-3 mr-1" /> Add
+                        </button>
                     </div>
                     {projects.map((proj, i) => (
-                        <div key={proj.id} className="p-4 bg-white/5 border border-white/10 rounded-xl relative group/proj">
-                            <input
-                                value={proj.title}
-                                onChange={(e) => {
-                                    const newProjs = [...projects];
-                                    newProjs[i].title = e.target.value;
-                                    updateField('projects', newProjs);
-                                }}
-                                className="w-full bg-transparent border-b border-white/20 focus:border-cyan-400 outline-none pb-1 font-bold text-lg mb-2"
-                            />
+                        <div key={proj.id} className="p-4 bg-white/5 border border-white/10 rounded-xl relative group/proj mb-4">
+                            <button 
+                                onClick={() => updateField('projects', projects.filter(p => p.id !== proj.id))}
+                                className="absolute top-4 right-4 text-white/20 hover:text-red-400 transition-colors"
+                                title="Delete Project"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                            <div className="pr-8 mb-2">
+                                <input
+                                    value={proj.title}
+                                    onChange={(e) => {
+                                        const newProjs = [...projects];
+                                        newProjs[i].title = e.target.value;
+                                        updateField('projects', newProjs);
+                                    }}
+                                    className="w-full bg-transparent border-b border-white/20 focus:border-cyan-400 outline-none pb-1 font-bold text-lg mb-2"
+                                    placeholder="Project Title"
+                                />
+                                <div className="flex items-center text-sm text-white/50 border-b border-white/20 focus-within:border-cyan-400 transition-colors pb-1">
+                                    <Link className="w-3.5 h-3.5 mr-2" />
+                                    <input
+                                        value={proj.link || ''}
+                                        onChange={(e) => {
+                                            const newProjs = [...projects];
+                                            newProjs[i].link = e.target.value;
+                                            updateField('projects', newProjs);
+                                        }}
+                                        className="w-full bg-transparent outline-none"
+                                        placeholder="Project Link (e.g. https://github.com/...)"
+                                    />
+                                </div>
+                            </div>
                             <textarea
                                 value={proj.description}
                                 onChange={(e) => {
@@ -131,8 +226,55 @@ export function CommandCenter() {
                                     newProjs[i].description = e.target.value;
                                     updateField('projects', newProjs);
                                 }}
-                                className="w-full bg-transparent outline-none text-sm text-white/70 resize-none h-16"
+                                className="w-full bg-transparent outline-none text-sm text-white/70 resize-y h-16 mt-3"
+                                placeholder="Project Description..."
                             />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Section: Social Media */}
+                <div className="glass-card p-6 space-y-4">
+                    <div className="flex justify-between items-center outline-none mb-4">
+                        <h3 className="text-lg font-medium text-white/80 uppercase tracking-widest text-xs flex items-center"><Globe className="w-4 h-4 mr-2 text-purple-400" /> Social Links</h3>
+                        <button 
+                            onClick={() => updateField('socials', [...(socials || []), { id: Date.now().toString(), platform: 'LinkedIn', link: '' }])}
+                            className="bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 px-3 py-1 rounded text-xs flex items-center transition-colors"
+                        >
+                            <Plus className="w-3 h-3 mr-1" /> Add
+                        </button>
+                    </div>
+                    {(socials || []).map((social, i) => (
+                        <div key={social.id} className="flex gap-3 items-center bg-white/5 border border-white/10 rounded-lg p-2 relative group">
+                            <input
+                                value={social.platform}
+                                onChange={(e) => {
+                                    const newSocials = [...socials];
+                                    newSocials[i].platform = e.target.value;
+                                    updateField('socials', newSocials);
+                                }}
+                                className="w-1/3 bg-transparent border-b border-white/20 focus:border-purple-400 outline-none text-sm px-2 py-1"
+                                placeholder="Platform (e.g. LinkedIn)"
+                            />
+                            <div className="flex-1 flex items-center bg-black/20 rounded px-2">
+                                <Link className="w-3.5 h-3.5 text-white/40 mr-2" />
+                                <input
+                                    value={social.link}
+                                    onChange={(e) => {
+                                        const newSocials = [...socials];
+                                        newSocials[i].link = e.target.value;
+                                        updateField('socials', newSocials);
+                                    }}
+                                    className="w-full bg-transparent outline-none text-sm py-1.5"
+                                    placeholder="https://"
+                                />
+                            </div>
+                            <button 
+                                onClick={() => updateField('socials', socials.filter(s => s.id !== social.id))}
+                                className="text-white/20 hover:text-red-400 transition-colors p-2"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         </div>
                     ))}
                 </div>
