@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store/useResumeStore';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, useMotionTemplate } from 'framer-motion';
 import { ExternalLink, Phone, Monitor, Smartphone, Layout, Moon, Sun } from 'lucide-react';
 import React, { useRef, useEffect } from 'react';
 
@@ -8,8 +8,8 @@ function TrailingCursor() {
     const cursorX = useMotionValue(-100);
     const cursorY = useMotionValue(-100);
     
-    // Spring physics for trailing effect
-    const springConfig = { damping: 25, stiffness: 300, mass: 0.5 };
+    // Heavier, lazier spring physics for the trailing ball aesthetic
+    const springConfig = { damping: 30, stiffness: 150, mass: 0.8 };
     const springX = useSpring(cursorX, springConfig);
     const springY = useSpring(cursorY, springConfig);
 
@@ -30,7 +30,58 @@ function TrailingCursor() {
     );
 }
 
-// A specialized 3D Card component for Projects
+// Prominent Floating Theme Widget
+function FloatingThemeToggle({ isLight, onToggle }: { isLight: boolean, onToggle: () => void }) {
+    return (
+        <motion.button 
+            whileHover={{ scale: 1.15, rotate: isLight ? 15 : -15 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onToggle}
+            title={`Switch to ${isLight ? 'Dark Cyberpunk' : 'Light Editorial'} Mode`}
+            className={`fixed bottom-8 right-8 p-4 rounded-full shadow-2xl z-[9000] cursor-none border transition-colors duration-700 ${isLight ? 'bg-white border-slate-200 text-slate-800 hover:shadow-[0_15px_40px_rgba(0,0,0,0.15)]' : 'bg-[#0a0b14] border-white/20 text-yellow-400 hover:shadow-[0_0_30px_rgba(250,204,21,0.5)] backdrop-blur-lg'}`}
+        >
+            {isLight ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+        </motion.button>
+    )
+}
+
+// Magnetic Glowing Service Card Component
+function MagneticServiceCard({ skill, i, isLight, Icon, colorClass, projectsCount }: any) {
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+
+    const handleMouseMove = ({ clientX, clientY, currentTarget }: any) => {
+        const { left, top } = currentTarget.getBoundingClientRect();
+        mouseX.set(clientX - left);
+        mouseY.set(clientY - top);
+    };
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1, type: "spring" }}
+            whileHover={{ scale: 1.05, z: 20, rotateX: 5 }}
+            onMouseMove={handleMouseMove}
+            style={{ transformStyle: "preserve-3d" }}
+            className={`relative flex items-center gap-8 p-8 md:p-10 rounded-[2rem] border transition-colors cursor-none group overflow-hidden ${isLight ? 'bg-white border-slate-100 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_-5px_rgba(0,0,0,0.1)]' : 'bg-white/5 border-white/5 backdrop-blur-md shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-5px_rgba(168,85,247,0.3)] hover:border-purple-500/30'}`}
+        >
+            {/* Magnetic Glow Effect following cursor */}
+            <motion.div
+                className="absolute inset-0 z-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ background: useMotionTemplate`radial-gradient(400px circle at ${mouseX}px ${mouseY}px, ${isLight ? 'rgba(0,0,0,0.04)' : 'rgba(34,211,238,0.15)'}, transparent 80%)` }}
+            />
+
+            <div style={{ transform: "translateZ(30px)" }} className={`w-20 h-20 md:w-24 md:h-24 rounded-full ${colorClass} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform relative z-10`}>
+                <Icon className="w-8 h-8 md:w-10 md:h-10" />
+            </div>
+            <div style={{ transform: "translateZ(20px)" }} className="relative z-10">
+                <h3 className={`text-2xl md:text-3xl font-heading font-black tracking-tight mb-2 transition-colors ${isLight ? 'text-[#1C2A31]' : 'text-white'}`}>{skill}</h3>
+                <p className={`text-sm font-bold uppercase tracking-widest transition-colors ${isLight ? 'text-slate-500' : 'text-white/40'}`}>{projectsCount} Projects</p>
+            </div>
+        </motion.div>
+    );
+}
+
+// A specialized 3D Card component for Projects featuring Vercel-Style Live IFrames
 function ProjectCard3D({ proj, isLight }: { proj: any, isLight: boolean }) {
     const ref = useRef<HTMLDivElement>(null);
     const x = useMotionValue(0);
@@ -58,11 +109,23 @@ function ProjectCard3D({ proj, isLight }: { proj: any, isLight: boolean }) {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 className={`relative w-full rounded-[2rem] border overflow-hidden flex flex-col shadow-xl transition-all hover:shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0a0b14] border-white/10 shadow-[0_0_50px_rgba(168,85,247,0.15)]'}`}
             >
-                {proj.image_url && (
-                    <div style={{ transform: "translateZ(30px)" }} className={`w-full h-64 md:h-72 overflow-hidden border-b shrink-0 relative group ${isLight ? 'border-slate-100 bg-slate-50' : 'border-white/10 bg-black/50'}`}>
+                {/* Vercel-style Live Thumbnail or Image Fallback */}
+                <div style={{ transform: "translateZ(30px)" }} className={`w-full h-64 md:h-72 overflow-hidden border-b shrink-0 relative group ${isLight ? 'border-slate-100 bg-slate-50' : 'border-white/10 bg-black/50'}`}>
+                    {proj.link && !proj.image_url ? (
+                        <>
+                            {/* Scaled IFrame Live Preview */}
+                            <div className={`absolute top-0 left-0 w-[400%] h-[400%] origin-top-left pointer-events-none transition-transform duration-1000 group-hover:scale-[0.27] z-0 scale-[0.25]`}>
+                                <iframe src={proj.link} className="w-full h-full border-none opacity-80 group-hover:opacity-100 transition-opacity duration-700" title={proj.title} sandbox="allow-scripts allow-same-origin"/>
+                            </div>
+                            {/* Overlay Blockings Clicks */}
+                            <div className="absolute inset-0 bg-transparent z-10" />
+                        </>
+                    ) : proj.image_url ? (
                         <img src={proj.image_url} alt={proj.title} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!isLight && 'opacity-80 group-hover:opacity-100 mix-blend-screen'}`} />
-                    </div>
-                )}
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center opacity-10">No Preview Found</div>
+                    )}
+                </div>
                 
                 <div style={{ transform: "translateZ(40px)" }} className="p-8 md:p-10 flex flex-col flex-1 relative z-10 pointer-events-auto">
                     <h3 className={`text-3xl font-bold font-heading mb-4 tracking-tight ${isLight ? 'text-[#1C2A31]' : 'text-white'}`}>{proj.title}</h3>
@@ -175,7 +238,9 @@ export function DirectorsCut() {
     return (
         <div className={`w-full h-full overflow-y-auto overflow-x-hidden relative font-body custom-scrollbar transition-colors duration-700 cursor-none ${isLight ? 'bg-white text-[#1C2A31]' : 'bg-[#05050A] text-white'}`}>
             
+            {/* Interactive Components */}
             <TrailingCursor />
+            <FloatingThemeToggle isLight={isLight} onToggle={() => updateField('theme', isLight ? 'cyberpunk' : 'minimalist')} />
 
             {/* Cinematic Cyberpunk Orbs for Dark Mode */}
             {!isLight && (
@@ -202,14 +267,6 @@ export function DirectorsCut() {
                     </ul>
 
                     <div className={`flex items-center gap-4 text-xs font-black tracking-wider transition-colors duration-700 ${isLight ? 'text-[#1C2A31]' : 'text-white/80'}`}>
-                        {/* Public Theme Toggle Button */}
-                        <button 
-                            onClick={() => updateField('theme', isLight ? 'cyberpunk' : 'minimalist')}
-                            className={`p-3 rounded-full shadow-sm hover:scale-105 transition-all outline-none cursor-none ${isLight ? 'bg-white border border-slate-200 text-slate-800' : 'bg-white/10 border border-white/20 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.2)]'}`}
-                        >
-                            {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                        </button>
-                    
                         <span className="hidden md:inline ml-2">{phone}</span>
                         <a href={`tel:${phone}`} className={`flex items-center justify-center p-3 rounded-full shadow-sm hover:scale-105 transition-transform cursor-none ${isLight ? 'bg-white border border-slate-100 text-[#215E63]' : 'bg-white/10 border border-white/20 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]'}`}>
                             <Phone className="w-4 h-4" />
@@ -276,7 +333,7 @@ export function DirectorsCut() {
                 </section>
             </div>
 
-            {/* "What do I help?" (Skills / Services) Section */}
+            {/* "What do I help?" (Skills / Services) Section mapped with Magnetic Lighting */}
             <section id="skills" className={`w-full max-w-[1600px] mx-auto py-32 px-8 md:px-16 flex flex-col lg:flex-row gap-20 xl:gap-32 relative z-20 pointer-events-auto transition-colors duration-700 ${isLight ? 'bg-white' : 'bg-transparent'}`}>
                 
                 {/* Left - Service Cards */}
@@ -284,24 +341,7 @@ export function DirectorsCut() {
                     {displayedSkills.map((skill, i) => {
                         const Icon = defaultIcons[i % defaultIcons.length];
                         const colorClass = defaultColors[i % defaultColors.length];
-                        
-                        return (
-                            <motion.div 
-                                key={i}
-                                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1, type: "spring" }}
-                                whileHover={{ scale: 1.05, z: 20, rotateX: 5 }}
-                                style={{ transformStyle: "preserve-3d" }}
-                                className={`flex items-center gap-8 p-8 md:p-10 rounded-[2rem] border transition-colors cursor-none group ${isLight ? 'bg-white border-slate-100 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_-5px_rgba(0,0,0,0.1)]' : 'bg-white/5 border-white/5 backdrop-blur-md shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-5px_rgba(168,85,247,0.3)] hover:border-purple-500/30'}`}
-                            >
-                                <div style={{ transform: "translateZ(30px)" }} className={`w-20 h-20 md:w-24 md:h-24 rounded-full ${colorClass} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                                    <Icon className="w-8 h-8 md:w-10 md:h-10" />
-                                </div>
-                                <div style={{ transform: "translateZ(20px)" }}>
-                                    <h3 className={`text-2xl md:text-3xl font-heading font-black tracking-tight mb-2 transition-colors ${isLight ? 'text-[#1C2A31]' : 'text-white'}`}>{skill}</h3>
-                                    <p className={`text-sm font-bold uppercase tracking-widest transition-colors ${isLight ? 'text-slate-500' : 'text-white/40'}`}>{(projects.length || 1) * (i+1) * 3} Projects</p>
-                                </div>
-                            </motion.div>
-                        );
+                        return <MagneticServiceCard key={i} skill={skill} i={i} isLight={isLight} Icon={Icon} colorClass={colorClass} projectsCount={(projects.length || 1) * (i+1) * 3} />
                     })}
                 </div>
 
@@ -349,7 +389,7 @@ export function DirectorsCut() {
                 </div>
             </section>
 
-            {/* Selected Work — Cinematic Cards */}
+            {/* Selected Work — Cinematic Project Cards */}
             <section id="projects" className={`border-t py-32 px-8 md:px-16 pointer-events-auto relative z-10 w-full max-w-[1600px] mx-auto rounded-[3rem] my-12 transition-colors duration-700 hidden md:block ${isLight ? 'bg-[#FAF9F6] border-slate-200' : 'bg-black/40 border-white/5 backdrop-blur-3xl shadow-[0_0_100px_rgba(0,0,0,0.5)]'}`}>
                 <h2 className={`text-5xl md:text-6xl font-heading font-black tracking-tight mb-20 text-center transition-colors duration-700 ${isLight ? 'text-[#1C2A31]' : 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]'}`}>Selected Works</h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
