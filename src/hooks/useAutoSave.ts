@@ -15,7 +15,7 @@ export function useAutoSave() {
         lastSnapshot = JSON.stringify({
             name: s.name, role: s.role, summary: s.summary,
             skills: s.skills, experience: s.experience,
-            education: s.education, projects: s.projects
+            education: s.education, projects: s.projects, socials: s.socials
         });
 
         const unsubscribe = useResumeStore.subscribe((state) => {
@@ -25,7 +25,7 @@ export function useAutoSave() {
             const currentSnapshot = JSON.stringify({
                 name: state.name, role: state.role, summary: state.summary,
                 skills: state.skills, experience: state.experience,
-                education: state.education, projects: state.projects
+                education: state.education, projects: state.projects, socials: state.socials
             });
 
             if (lastSnapshot && currentSnapshot !== lastSnapshot) {
@@ -72,7 +72,8 @@ export function useAutoSave() {
                                 skills: currentState.skills,
                                 experience: currentState.experience,
                                 education: currentState.education,
-                                projects: currentState.projects
+                                projects: currentState.projects,
+                                socials: currentState.socials
                             }
                         });
                     }
