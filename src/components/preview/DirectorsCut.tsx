@@ -38,7 +38,7 @@ function FloatingThemeToggle({ isLight, onToggle }: { isLight: boolean, onToggle
             whileTap={{ scale: 0.9 }}
             onClick={onToggle}
             title={`Switch to ${isLight ? 'Dark Mode' : 'Light Mode'}`}
-            className={`fixed bottom-8 right-8 p-4 rounded-full shadow-2xl z-[9000] cursor-none border transition-colors duration-700 ${isLight ? 'bg-white border-slate-200 text-slate-800 hover:shadow-[0_15px_40px_rgba(0,0,0,0.15)]' : 'bg-[#0a0b14] border-white/20 text-yellow-400 hover:shadow-[0_0_30px_rgba(250,204,21,0.5)] backdrop-blur-lg'}`}
+            className={`fixed bottom-8 left-8 p-4 rounded-full shadow-2xl z-[9000] cursor-none border transition-colors duration-700 ${isLight ? 'bg-white border-slate-200 text-slate-800 hover:shadow-[0_15px_40px_rgba(0,0,0,0.15)]' : 'bg-[#0a0b14] border-white/20 text-yellow-400 hover:shadow-[0_0_30px_rgba(250,204,21,0.5)] backdrop-blur-lg'}`}
         >
             {isLight ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
         </motion.button>
@@ -125,6 +125,8 @@ export function DirectorsCut() {
     const isLight = theme === 'minimalist';
     const email = socials?.find(s => s.platform.toLowerCase().includes('email'))?.link?.replace('mailto:', '') || '';
     
+    // Derived properties
+    const displayedSkillsBox = skills && skills.length > 0 ? skills : ['React', 'Framer Motion', 'Tailwind', 'JavaScript', 'TypeScript', 'Node.js'];
     const constraintsRef = useRef<HTMLDivElement>(null);
 
     return (
@@ -162,7 +164,15 @@ export function DirectorsCut() {
                             className={`w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 pointer-events-none ${!isLight && 'grayscale contrast-125'}`}
                         />
                     ) : (
-                        <div className="w-full h-full bg-slate-200 dark:bg-white/5 animate-pulse" />
+                        <div className="w-full h-full bg-slate-200 dark:bg-white/5 flex flex-col items-center justify-center text-center p-8 animate-pulse">
+                            <div className="w-32 h-32 mb-6 rounded-full bg-slate-300 dark:bg-white/10 flex items-center justify-center">
+                                <svg className="w-12 h-12 text-slate-400 dark:text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <p className={`font-bold tracking-widest uppercase text-sm ${isLight ? 'text-slate-400' : 'text-white/30'}`}>Upload your photo</p>
+                            <p className="text-xs text-slate-400 mt-2">Use the editor dashboard.</p>
+                        </div>
                     )}
                 </div>
 
@@ -204,7 +214,7 @@ export function DirectorsCut() {
                     
                     {/* The Constraint Arena */}
                     <div ref={constraintsRef} className={`relative w-full h-[600px] rounded-[3rem] overflow-hidden flex flex-wrap justify-center items-end p-8 gap-4 border-2 shadow-inner transition-colors duration-700 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#0f0f13] border-white/5'}`}>
-                        {skills.map((skill, i) => (
+                        {displayedSkillsBox.map((skill, i) => (
                             <motion.div
                                 key={i}
                                 drag

@@ -15,6 +15,17 @@ export function CommandCenter() {
         }
     };
 
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'avatar_url' | 'logo_url') => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                updateField(field, reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const removeSkill = (skillToRemove: string) => {
         updateField('skills', skills.filter(s => s !== skillToRemove));
     };
@@ -46,13 +57,19 @@ export function CommandCenter() {
                                 {avatar_url ? <img src={avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : <Image className="w-5 h-5 text-white/40" />}
                             </div>
                             <div className="flex-1">
-                                <label className="text-xs text-white/40 uppercase">Profile Picture URL</label>
-                                <input
-                                    value={avatar_url}
-                                    onChange={(e) => updateField('avatar_url', e.target.value)}
-                                    className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
-                                    placeholder="https://imgur.com/..."
-                                />
+                                <label className="text-xs text-white/40 uppercase">Profile Picture</label>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <input
+                                        value={avatar_url}
+                                        onChange={(e) => updateField('avatar_url', e.target.value)}
+                                        className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
+                                        placeholder="Paste URL..."
+                                    />
+                                    <label className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded cursor-pointer transition-colors whitespace-nowrap border border-white/20">
+                                        Upload
+                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'avatar_url')} />
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div className="relative group/field flex items-center gap-4 border-b border-white/20 pb-2">
@@ -60,13 +77,19 @@ export function CommandCenter() {
                                 {logo_url ? <img src={logo_url} alt="Logo" className="w-full h-full object-contain" /> : <Image className="w-5 h-5 text-white/40" />}
                             </div>
                             <div className="flex-1">
-                                <label className="text-xs text-white/40 uppercase">Logo Background/Icon URL</label>
-                                <input
-                                    value={logo_url || ''}
-                                    onChange={(e) => updateField('logo_url', e.target.value)}
-                                    className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
-                                    placeholder="https://imgur.com/... (Optional)"
-                                />
+                                <label className="text-xs text-white/40 uppercase">Logo Background/Icon</label>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <input
+                                        value={logo_url || ''}
+                                        onChange={(e) => updateField('logo_url', e.target.value)}
+                                        className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
+                                        placeholder="Paste URL..."
+                                    />
+                                    <label className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded cursor-pointer transition-colors whitespace-nowrap border border-white/20">
+                                        Upload
+                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'logo_url')} />
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div className="relative group/field">
