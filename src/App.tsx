@@ -31,6 +31,9 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsInitializing(false);
+    }).catch((err) => {
+      console.error("Failed to get session:", err);
+      setIsInitializing(false); // Make sure we don't stay on the blank loading screen forever
     });
 
     const {
