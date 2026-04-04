@@ -1,7 +1,34 @@
 import { useResumeStore } from '../../store/useResumeStore';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
-import { ExternalLink, Phone, Monitor, Smartphone, Layout } from 'lucide-react';
-import React, { useRef } from 'react';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { ExternalLink, Phone, Monitor, Smartphone, Layout, Moon, Sun } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
+
+// Custom Trailing Interactive Ball Cursor
+function TrailingCursor() {
+    const cursorX = useMotionValue(-100);
+    const cursorY = useMotionValue(-100);
+    
+    // Spring physics for trailing effect
+    const springConfig = { damping: 25, stiffness: 300, mass: 0.5 };
+    const springX = useSpring(cursorX, springConfig);
+    const springY = useSpring(cursorY, springConfig);
+
+    useEffect(() => {
+        const moveCursor = (e: MouseEvent) => {
+            cursorX.set(e.clientX - 16);
+            cursorY.set(e.clientY - 16);
+        };
+        window.addEventListener('mousemove', moveCursor);
+        return () => window.removeEventListener('mousemove', moveCursor);
+    }, [cursorX, cursorY]);
+
+    return (
+        <motion.div 
+            style={{ x: springX, y: springY }}
+            className="fixed top-0 left-0 w-8 h-8 rounded-full border-2 border-[#1C2A31] mix-blend-difference pointer-events-none z-[9999]"
+        />
+    );
+}
 
 // A specialized 3D Card component for Projects
 function ProjectCard3D({ proj, isLight }: { proj: any, isLight: boolean }) {
@@ -23,7 +50,7 @@ function ProjectCard3D({ proj, isLight }: { proj: any, isLight: boolean }) {
     const handleMouseLeave = () => { x.set(0); y.set(0); };
 
     return (
-        <div style={{ perspective: 1200 }} className="w-full h-full flex justify-center items-center">
+        <div style={{ perspective: 1200 }} className="w-full h-full flex justify-center items-center cursor-none">
             <motion.div
                 ref={ref} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
                 style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -37,7 +64,7 @@ function ProjectCard3D({ proj, isLight }: { proj: any, isLight: boolean }) {
                     </div>
                 )}
                 
-                <div style={{ transform: "translateZ(40px)" }} className="p-8 md:p-10 flex flex-col flex-1 relative z-10">
+                <div style={{ transform: "translateZ(40px)" }} className="p-8 md:p-10 flex flex-col flex-1 relative z-10 pointer-events-auto">
                     <h3 className={`text-3xl font-bold font-heading mb-4 tracking-tight ${isLight ? 'text-[#1C2A31]' : 'text-white'}`}>{proj.title}</h3>
                     <p className={`leading-relaxed mb-6 flex-1 ${isLight ? 'text-slate-600' : 'text-white/60'}`}>{proj.description}</p>
                     
@@ -65,12 +92,12 @@ function ProjectCard3D({ proj, isLight }: { proj: any, isLight: boolean }) {
 
                     <div className={`flex items-center gap-6 mt-4 pt-6 border-t ${isLight ? 'border-slate-100' : 'border-white/10'}`}>
                         {proj.link && (
-                            <a href={proj.link} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-sm font-bold group/link px-5 py-2.5 rounded-full transition-all shadow-md group ${isLight ? 'text-white bg-[#1C2A31] hover:bg-slate-800' : 'text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]'}`}>
+                            <a href={proj.link} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-sm font-bold group/link px-5 py-2.5 rounded-full transition-all shadow-md group border cursor-none ${isLight ? 'text-white bg-[#1C2A31] hover:bg-slate-800 border-transparent' : 'text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]'}`}>
                                 <ExternalLink className="w-4 h-4" /> Live Demo
                             </a>
                         )}
                         {proj.github_link && (
-                            <a href={proj.github_link} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-sm font-bold transition-all ${isLight ? 'text-slate-500 hover:text-[#1C2A31]' : 'text-white/40 hover:text-white'}`}>
+                            <a href={proj.github_link} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-sm font-bold transition-all cursor-none ${isLight ? 'text-slate-500 hover:text-[#1C2A31]' : 'text-white/40 hover:text-white'}`}>
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg> GitHub
                                 <ExternalLink className="w-3 h-3 opacity-50" />
                             </a>
@@ -102,7 +129,7 @@ function HeroAvatar3D({ avatar_url, name, isLight }: { avatar_url: string, name:
     const handleMouseLeave = () => { x.set(0); y.set(0); };
 
     return (
-        <div style={{ perspective: 1200 }} className="w-full md:w-1/3 relative h-[500px] md:h-[600px] flex justify-center items-center my-12 md:my-0 z-10">
+        <div style={{ perspective: 1200 }} className="w-full md:w-1/3 relative h-[500px] md:h-[600px] flex justify-center items-center my-12 md:my-0 z-10 cursor-none">
             <motion.div
                 ref={ref} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
                 style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -131,7 +158,7 @@ function HeroAvatar3D({ avatar_url, name, isLight }: { avatar_url: string, name:
 }
 
 export function DirectorsCut() {
-    const { name, role, summary, skills, projects, experience, socials, avatar_url, theme } = useResumeStore();
+    const { name, role, summary, skills, projects, experience, socials, avatar_url, logo_url, achievements, theme, updateField } = useResumeStore();
 
     // Derived properties
     const isLight = theme === 'minimalist';
@@ -146,8 +173,10 @@ export function DirectorsCut() {
     const displayedSkills = skills.length >= 3 ? skills.slice(0, 3) : ['Website Design', 'Mobile App Design', 'Brand Identity'];
 
     return (
-        <div className={`w-full h-full overflow-y-auto overflow-x-hidden relative font-body custom-scrollbar transition-colors duration-700 ${isLight ? 'bg-white text-[#1C2A31]' : 'bg-[#05050A] text-white'}`}>
+        <div className={`w-full h-full overflow-y-auto overflow-x-hidden relative font-body custom-scrollbar transition-colors duration-700 cursor-none ${isLight ? 'bg-white text-[#1C2A31]' : 'bg-[#05050A] text-white'}`}>
             
+            <TrailingCursor />
+
             {/* Cinematic Cyberpunk Orbs for Dark Mode */}
             {!isLight && (
                 <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -160,28 +189,36 @@ export function DirectorsCut() {
             <div className={`transition-colors duration-700 pb-24 border-b relative z-10 ${isLight ? 'bg-[#FAF9F6] border-slate-200' : 'bg-transparent border-white/5 backdrop-blur-3xl'}`}>
                 
                 {/* Navbar matching Image */}
-                <nav className="flex items-center justify-between py-8 px-8 md:px-16 w-full max-w-[1600px] mx-auto z-50 relative">
-                    <div className={`text-3xl font-heading font-black tracking-tighter italic ${isLight ? 'text-[#1C2A31]' : 'text-white drop-shadow-[0_0_10px_white]'}`}>
-                        {name || 'Binjan'}
+                <nav className="flex items-center justify-between py-8 px-8 md:px-16 w-full max-w-[1600px] mx-auto z-50 relative pointer-events-auto">
+                    <div className={`text-3xl font-heading font-black tracking-tighter italic cursor-none ${isLight ? 'text-[#1C2A31]' : 'text-white drop-shadow-[0_0_10px_white]'}`}>
+                        {logo_url ? <img src={logo_url} alt={name} className="h-10 w-auto object-contain" /> : (name || 'Binjan')}
                     </div>
                     
                     <ul className={`hidden lg:flex items-center gap-12 text-xs font-black tracking-widest uppercase transition-colors duration-700 ${isLight ? 'text-slate-500' : 'text-white/60'}`}>
-                        <li><a href="#skills" className={`flex items-center gap-3 transition-colors ${isLight ? 'hover:text-[#215E63] text-[#215E63]' : 'hover:text-cyan-400 text-cyan-400'}`}><span className={`w-3 h-[1px] ${isLight ? 'bg-[#215E63]' : 'bg-cyan-400'}`}></span> SERVICES <span className={`w-3 h-[1px] ${isLight ? 'bg-[#215E63]' : 'bg-cyan-400'}`}></span></a></li>
-                        <li><a href="#projects" className={`transition-colors ${isLight ? 'hover:text-[#215E63]' : 'hover:text-cyan-400'}`}>WORKS</a></li>
-                        <li><a href="#about" className={`transition-colors ${isLight ? 'hover:text-[#215E63]' : 'hover:text-cyan-400'}`}>NOTES</a></li>
-                        <li><a href="#experience" className={`transition-colors ${isLight ? 'hover:text-[#215E63]' : 'hover:text-cyan-400'}`}>EXPERIENCE</a></li>
+                        <li><a href="#skills" className={`flex items-center gap-3 transition-colors cursor-none ${isLight ? 'hover:text-[#215E63] text-[#215E63]' : 'hover:text-cyan-400 text-cyan-400'}`}><span className={`w-3 h-[1px] ${isLight ? 'bg-[#215E63]' : 'bg-cyan-400'}`}></span> SERVICES <span className={`w-3 h-[1px] ${isLight ? 'bg-[#215E63]' : 'bg-cyan-400'}`}></span></a></li>
+                        <li><a href="#projects" className={`transition-colors cursor-none ${isLight ? 'hover:text-[#215E63]' : 'hover:text-cyan-400'}`}>WORKS</a></li>
+                        <li><a href="#experience" className={`transition-colors cursor-none ${isLight ? 'hover:text-[#215E63]' : 'hover:text-cyan-400'}`}>EXPERIENCE</a></li>
+                        <li><a href="#achievements" className={`transition-colors cursor-none ${isLight ? 'hover:text-[#215E63]' : 'hover:text-cyan-400'}`}>AWARDS</a></li>
                     </ul>
 
                     <div className={`flex items-center gap-4 text-xs font-black tracking-wider transition-colors duration-700 ${isLight ? 'text-[#1C2A31]' : 'text-white/80'}`}>
-                        <span className="hidden md:inline">{phone}</span>
-                        <a href={`tel:${phone}`} className={`flex items-center justify-center p-3 rounded-full shadow-sm hover:scale-105 transition-transform ${isLight ? 'bg-white border border-slate-100 text-[#215E63]' : 'bg-white/10 border border-white/20 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]'}`}>
+                        {/* Public Theme Toggle Button */}
+                        <button 
+                            onClick={() => updateField('theme', isLight ? 'cyberpunk' : 'minimalist')}
+                            className={`p-3 rounded-full shadow-sm hover:scale-105 transition-all outline-none cursor-none ${isLight ? 'bg-white border border-slate-200 text-slate-800' : 'bg-white/10 border border-white/20 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.2)]'}`}
+                        >
+                            {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                        </button>
+                    
+                        <span className="hidden md:inline ml-2">{phone}</span>
+                        <a href={`tel:${phone}`} className={`flex items-center justify-center p-3 rounded-full shadow-sm hover:scale-105 transition-transform cursor-none ${isLight ? 'bg-white border border-slate-100 text-[#215E63]' : 'bg-white/10 border border-white/20 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]'}`}>
                             <Phone className="w-4 h-4" />
                         </a>
                     </div>
                 </nav>
 
                 {/* Hero Content Grid */}
-                <section id="hero" className="w-full max-w-[1600px] mx-auto px-8 md:px-16 relative min-h-[70vh] flex flex-col md:flex-row items-center justify-between mt-12 z-10">
+                <section id="hero" className="w-full max-w-[1600px] mx-auto px-8 md:px-16 relative min-h-[70vh] flex flex-col md:flex-row items-center justify-between mt-12 z-10 pointer-events-auto">
                     
                     {/* Left Typography */}
                     <div className="w-full md:w-1/3 flex flex-col z-20 text-center md:text-left">
@@ -195,7 +232,7 @@ export function DirectorsCut() {
                         <motion.a 
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
                             href={`mailto:${email}`}
-                            className={`font-bold text-lg mb-20 hover:underline decoration-2 underline-offset-4 transition-colors duration-700 ${isLight ? 'text-[#D46B55]' : 'text-cyan-300 drop-shadow-[0_0_8px_cyan]'}`}
+                            className={`font-bold text-lg mb-20 hover:text-opacity-80 underline decoration-2 underline-offset-4 transition-colors duration-700 cursor-none ${isLight ? 'text-[#D46B55]' : 'text-cyan-300 drop-shadow-[0_0_8px_cyan]'}`}
                         >
                             {email}
                         </motion.a>
@@ -223,7 +260,7 @@ export function DirectorsCut() {
 
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7 }}
-                            className="flex flex-col items-center md:items-end gap-6 mb-12 group"
+                            className="flex flex-col items-center md:items-end gap-6 mb-12 group cursor-none pointer-events-auto"
                         >
                             <div className={`w-24 h-24 rounded-full border flex items-center justify-center relative spin-slow p-2 shadow-xl transition-colors duration-700 ${isLight ? 'border-slate-300 bg-white' : 'border-white/20 bg-white/5 backdrop-blur-md shadow-[0_0_30px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_40px_rgba(168,85,247,0.3)]'}`}>
                                 <svg className={`w-full h-full transition-colors duration-700 ${isLight ? 'text-[#1C2A31]' : 'text-white'}`} viewBox="0 0 100 100" fill="currentColor">
@@ -240,7 +277,7 @@ export function DirectorsCut() {
             </div>
 
             {/* "What do I help?" (Skills / Services) Section */}
-            <section id="skills" className={`w-full max-w-[1600px] mx-auto py-32 px-8 md:px-16 flex flex-col lg:flex-row gap-20 xl:gap-32 relative z-20 transition-colors duration-700 ${isLight ? 'bg-white' : 'bg-transparent'}`}>
+            <section id="skills" className={`w-full max-w-[1600px] mx-auto py-32 px-8 md:px-16 flex flex-col lg:flex-row gap-20 xl:gap-32 relative z-20 pointer-events-auto transition-colors duration-700 ${isLight ? 'bg-white' : 'bg-transparent'}`}>
                 
                 {/* Left - Service Cards */}
                 <div className="w-full lg:w-5/12 flex flex-col gap-6" style={{ perspective: 1200 }}>
@@ -254,7 +291,7 @@ export function DirectorsCut() {
                                 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1, type: "spring" }}
                                 whileHover={{ scale: 1.05, z: 20, rotateX: 5 }}
                                 style={{ transformStyle: "preserve-3d" }}
-                                className={`flex items-center gap-8 p-8 md:p-10 rounded-[2rem] border transition-colors cursor-pointer group ${isLight ? 'bg-white border-slate-100 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_-5px_rgba(0,0,0,0.1)]' : 'bg-white/5 border-white/5 backdrop-blur-md shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-5px_rgba(168,85,247,0.3)] hover:border-purple-500/30'}`}
+                                className={`flex items-center gap-8 p-8 md:p-10 rounded-[2rem] border transition-colors cursor-none group ${isLight ? 'bg-white border-slate-100 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_-5px_rgba(0,0,0,0.1)]' : 'bg-white/5 border-white/5 backdrop-blur-md shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-5px_rgba(168,85,247,0.3)] hover:border-purple-500/30'}`}
                             >
                                 <div style={{ transform: "translateZ(30px)" }} className={`w-20 h-20 md:w-24 md:h-24 rounded-full ${colorClass} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
                                     <Icon className="w-8 h-8 md:w-10 md:h-10" />
@@ -313,7 +350,7 @@ export function DirectorsCut() {
             </section>
 
             {/* Selected Work — Cinematic Cards */}
-            <section id="projects" className={`border-t py-32 px-8 md:px-16 relative z-10 w-full max-w-[1600px] mx-auto rounded-[3rem] my-12 transition-colors duration-700 hidden md:block ${isLight ? 'bg-[#FAF9F6] border-slate-200' : 'bg-black/40 border-white/5 backdrop-blur-3xl shadow-[0_0_100px_rgba(0,0,0,0.5)]'}`}>
+            <section id="projects" className={`border-t py-32 px-8 md:px-16 pointer-events-auto relative z-10 w-full max-w-[1600px] mx-auto rounded-[3rem] my-12 transition-colors duration-700 hidden md:block ${isLight ? 'bg-[#FAF9F6] border-slate-200' : 'bg-black/40 border-white/5 backdrop-blur-3xl shadow-[0_0_100px_rgba(0,0,0,0.5)]'}`}>
                 <h2 className={`text-5xl md:text-6xl font-heading font-black tracking-tight mb-20 text-center transition-colors duration-700 ${isLight ? 'text-[#1C2A31]' : 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]'}`}>Selected Works</h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {projects.map((proj) => (
@@ -321,6 +358,44 @@ export function DirectorsCut() {
                     ))}
                 </div>
             </section>
+
+            {/* Experience Timeline */}
+            {experience && experience.length > 0 && (
+                <section id="experience" className={`py-32 px-8 md:px-16 w-full max-w-[1200px] mx-auto relative z-10 pointer-events-auto transition-colors duration-700 px-4 md:px-8`}>
+                    <h2 className={`text-4xl md:text-5xl font-heading font-black tracking-tight mb-16 text-center transition-colors duration-700 ${isLight ? 'text-[#1C2A31]' : 'text-white'}`}>Career Journey</h2>
+                    <div className={`relative border-l-2 ml-4 md:ml-16 transition-colors duration-700 ${isLight ? 'border-slate-200' : 'border-white/10'}`}>
+                        {experience.map((exp, idx) => (
+                            <motion.div key={exp.id} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} className="mb-16 pl-10 relative group cursor-none">
+                                <div className={`absolute -left-[11px] top-1.5 w-5 h-5 rounded-full transition-all duration-700 group-hover:scale-125 ${isLight ? 'bg-[#D46B55] shadow-[0_0_0_5px_#FAF9F6]' : 'bg-cyan-500 shadow-[0_0_15px_cyan] shadow-[0_0_0_5px_#05050A]'}`} />
+                                <h3 className={`text-3xl font-bold font-heading mb-2 transition-colors ${isLight ? 'text-[#1C2A31] group-hover:text-[#D46B55]' : 'text-white group-hover:text-cyan-400'}`}>{exp.role}</h3>
+                                <div className={`flex flex-wrap items-center gap-4 text-sm font-bold uppercase tracking-widest mb-6 transition-colors ${isLight ? 'text-[#215E63]' : 'text-purple-400'}`}>
+                                    <span>{exp.company}</span>
+                                    <span className="hidden md:inline">•</span>
+                                    <span className={`px-4 py-1.5 rounded-full border text-xs transition-colors ${isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-white/5 border-white/10 text-white/50'}`}>{exp.date}</span>
+                                </div>
+                                <p className={`leading-relaxed max-w-3xl text-lg transition-colors ${isLight ? 'text-slate-600' : 'text-white/70'}`}>{exp.description}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* Achievements Showcase */}
+            {achievements && achievements.length > 0 && (
+                <section id="achievements" className={`py-32 px-8 md:px-16 w-full max-w-[1600px] mx-auto border-t relative z-10 pointer-events-auto transition-colors duration-700 ${isLight ? 'border-slate-100 bg-[#FAF9F6]' : 'border-white/10 bg-black/20 backdrop-blur-md'}`}>
+                    <h2 className={`text-4xl md:text-5xl font-heading font-black tracking-tight mb-16 text-center transition-colors duration-700 ${isLight ? 'text-[#1C2A31]' : 'text-white'}`}>Awards & Achievements</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {achievements.map((ach, idx) => (
+                            <motion.div key={ach.id} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} className={`p-10 rounded-[2rem] border transition-all cursor-none group hover:-translate-y-2 ${isLight ? 'bg-white border-slate-200 shadow-xl hover:shadow-2xl' : 'bg-white/5 border-white/10 shadow-[0_0_30px_rgba(34,211,238,0.1)] hover:border-cyan-500/50 hover:shadow-[0_0_50px_rgba(34,211,238,0.3)] hover:bg-white/10'}`}>
+                                <div className={`text-xs font-bold tracking-widest uppercase mb-6 px-4 py-1.5 inline-block rounded-full border transition-colors ${isLight ? 'bg-[#D46B55]/10 text-[#D46B55] border-[#D46B55]/20' : 'bg-purple-500/20 text-purple-300 border-purple-500/30'}`}>{ach.date}</div>
+                                <h3 className={`text-2xl font-bold font-heading mb-4 transition-colors ${isLight ? 'text-[#1C2A31]' : 'text-white'}`}>{ach.title}</h3>
+                                <div className={`text-sm font-bold uppercase tracking-widest mb-6 transition-colors ${isLight ? 'text-[#215E63]' : 'text-cyan-400'}`}>{ach.event}</div>
+                                <p className={`leading-relaxed transition-colors ${isLight ? 'text-slate-600' : 'text-white/60 group-hover:text-white/80'}`}>{ach.description}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </section>
+            )}
 
         </div>
     );

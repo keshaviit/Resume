@@ -55,6 +55,7 @@ export interface ResumeState {
     projects: Project[];
     socials: Social[];
     avatar_url: string;
+    logo_url?: string;
     achievements: Achievement[];
     theme: string;
 
@@ -103,6 +104,7 @@ const initialData = {
         }
     ],
     avatar_url: '',
+    logo_url: '',
     achievements: [
         {
             id: '1',

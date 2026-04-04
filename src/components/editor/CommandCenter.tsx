@@ -5,7 +5,7 @@ import { useAutoSave } from '../../hooks/useAutoSave';
 
 export function CommandCenter() {
     useAutoSave();
-    const { name, role, summary, skills, projects, experience, socials, avatar_url, achievements, updateField } = useResumeStore();
+    const { name, role, summary, skills, projects, experience, socials, avatar_url, logo_url, achievements, updateField } = useResumeStore();
     const [newSkill, setNewSkill] = useState('');
 
     const handleAddSkill = (e: React.KeyboardEvent) => {
@@ -52,6 +52,20 @@ export function CommandCenter() {
                                     onChange={(e) => updateField('avatar_url', e.target.value)}
                                     className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
                                     placeholder="https://imgur.com/..."
+                                />
+                            </div>
+                        </div>
+                        <div className="relative group/field flex items-center gap-4 border-b border-white/20 pb-2">
+                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                                {logo_url ? <img src={logo_url} alt="Logo" className="w-full h-full object-contain" /> : <Image className="w-5 h-5 text-white/40" />}
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-xs text-white/40 uppercase">Logo Background/Icon URL</label>
+                                <input
+                                    value={logo_url || ''}
+                                    onChange={(e) => updateField('logo_url', e.target.value)}
+                                    className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
+                                    placeholder="https://imgur.com/... (Optional)"
                                 />
                             </div>
                         </div>
