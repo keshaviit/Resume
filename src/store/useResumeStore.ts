@@ -29,6 +29,15 @@ export interface Social {
     link: string;
 }
 
+export interface Achievement {
+    id: string;
+    title: string;
+    event: string;
+    date: string;
+    description: string;
+    link?: string;
+}
+
 export interface ResumeState {
     // Current Active Local Resume ID
     activeId: string | null;
@@ -42,6 +51,8 @@ export interface ResumeState {
     education: Education[];
     projects: Project[];
     socials: Social[];
+    avatar_url: string;
+    achievements: Achievement[];
 
     // App State
     isSyncing: boolean;
@@ -82,6 +93,17 @@ const initialData = {
             description: 'A full-stack e-commerce solution with Next.js and Stripe integration.',
             link: '#',
             tags: ['Next.js', 'Stripe', 'Tailwind']
+        }
+    ],
+    avatar_url: '',
+    achievements: [
+        {
+            id: '1',
+            title: 'First Place Winner',
+            event: 'Global Hackathon',
+            date: 'Oct 2023',
+            description: 'Built an AI-powered resume builder overnight.',
+            link: ''
         }
     ],
     socials: [

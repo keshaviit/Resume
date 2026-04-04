@@ -71,7 +71,9 @@ function App() {
                 experience: data.experience || [],
                 education: data.education || [],
                 projects: data.projects || [],
-                socials: data.socials || []
+                socials: data.socials || [],
+                avatar_url: data.avatar_url || '',
+                achievements: data.achievements || []
               }
             });
           }

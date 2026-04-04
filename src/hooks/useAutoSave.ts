@@ -15,7 +15,8 @@ export function useAutoSave() {
         lastSnapshot = JSON.stringify({
             name: s.name, role: s.role, summary: s.summary,
             skills: s.skills, experience: s.experience,
-            education: s.education, projects: s.projects, socials: s.socials
+            education: s.education, projects: s.projects, socials: s.socials,
+            avatar_url: s.avatar_url, achievements: s.achievements
         });
 
         const unsubscribe = useResumeStore.subscribe((state) => {
@@ -25,7 +26,8 @@ export function useAutoSave() {
             const currentSnapshot = JSON.stringify({
                 name: state.name, role: state.role, summary: state.summary,
                 skills: state.skills, experience: state.experience,
-                education: state.education, projects: state.projects, socials: state.socials
+                education: state.education, projects: state.projects, socials: state.socials,
+                avatar_url: state.avatar_url, achievements: state.achievements
             });
 
             if (lastSnapshot && currentSnapshot !== lastSnapshot) {
@@ -73,7 +75,9 @@ export function useAutoSave() {
                                 experience: currentState.experience,
                                 education: currentState.education,
                                 projects: currentState.projects,
-                                socials: currentState.socials
+                                socials: currentState.socials,
+                                avatar_url: currentState.avatar_url,
+                                achievements: currentState.achievements
                             }
                         });
                     }

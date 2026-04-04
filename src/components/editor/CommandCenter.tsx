@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useResumeStore } from '../../store/useResumeStore';
-import { Wand2, User, Briefcase, GraduationCap, Code, X, Plus, Trash2, Link, Globe } from 'lucide-react';
+import { Wand2, User, Briefcase, GraduationCap, Code, X, Plus, Trash2, Link, Globe, Trophy, Image } from 'lucide-react';
 import { useAutoSave } from '../../hooks/useAutoSave';
 
 export function CommandCenter() {
     useAutoSave();
-    const { name, role, summary, skills, projects, experience, socials, updateField } = useResumeStore();
+    const { name, role, summary, skills, projects, experience, socials, avatar_url, achievements, updateField } = useResumeStore();
     const [newSkill, setNewSkill] = useState('');
 
     const handleAddSkill = (e: React.KeyboardEvent) => {
@@ -39,6 +39,20 @@ export function CommandCenter() {
                     </div>
 
                     <div className="space-y-4">
+                        <div className="relative group/field flex items-center gap-4 border-b border-white/20 pb-2">
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                                {avatar_url ? <img src={avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : <Image className="w-5 h-5 text-white/40" />}
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-xs text-white/40 uppercase">Profile Picture URL</label>
+                                <input
+                                    value={avatar_url}
+                                    onChange={(e) => updateField('avatar_url', e.target.value)}
+                                    className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
+                                    placeholder="https://imgur.com/..."
+                                />
+                            </div>
+                        </div>
                         <div className="relative group/field">
                             <label className="text-xs text-white/40 uppercase">Full Name</label>
                             <input
@@ -275,6 +289,85 @@ export function CommandCenter() {
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Section: Achievements */}
+                <div className="glass-card p-6 space-y-4">
+                    <div className="flex justify-between items-center outline-none mb-4">
+                        <h3 className="text-lg font-medium text-white/80 uppercase tracking-widest text-xs flex items-center"><Trophy className="w-4 h-4 mr-2 text-yellow-400" /> Achievements</h3>
+                        <button 
+                            onClick={() => updateField('achievements', [...(achievements || []), { id: Date.now().toString(), title: 'New Achievement', event: 'Event/Issuer', date: 'Date', description: '', link: '' }])}
+                            className="bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 px-3 py-1 rounded text-xs flex items-center transition-colors"
+                        >
+                            <Plus className="w-3 h-3 mr-1" /> Add
+                        </button>
+                    </div>
+                    {(achievements || []).map((ach, i) => (
+                        <div key={ach.id} className="p-4 bg-white/5 border border-white/10 rounded-xl relative group/ach mb-4">
+                            <button 
+                                onClick={() => updateField('achievements', achievements.filter(a => a.id !== ach.id))}
+                                className="absolute top-4 right-4 text-white/20 hover:text-red-400 transition-colors"
+                                title="Delete Achievement"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                            <div className="grid grid-cols-2 gap-4 mb-3 pr-8">
+                                <input
+                                    value={ach.title}
+                                    onChange={(e) => {
+                                        const newAch = [...achievements];
+                                        newAch[i].title = e.target.value;
+                                        updateField('achievements', newAch);
+                                    }}
+                                    className="w-full bg-transparent border-b border-white/20 focus:border-yellow-400 outline-none pb-1 font-bold text-lg"
+                                    placeholder="Title (e.g. Winner)"
+                                />
+                                <input
+                                    value={ach.event}
+                                    onChange={(e) => {
+                                        const newAch = [...achievements];
+                                        newAch[i].event = e.target.value;
+                                        updateField('achievements', newAch);
+                                    }}
+                                    className="w-full bg-transparent border-b border-white/20 focus:border-yellow-400 outline-none pb-1 text-purple-300"
+                                    placeholder="Event/Issuer (e.g. Global Hackathon)"
+                                />
+                                <input
+                                    value={ach.date}
+                                    onChange={(e) => {
+                                        const newAch = [...achievements];
+                                        newAch[i].date = e.target.value;
+                                        updateField('achievements', newAch);
+                                    }}
+                                    className="w-full bg-transparent border-b border-white/20 focus:border-yellow-400 outline-none pb-1 text-sm text-white/50"
+                                    placeholder="Date"
+                                />
+                                <div className="flex items-center text-sm text-white/50 border-b border-white/20 focus-within:border-yellow-400 transition-colors pb-1">
+                                    <Link className="w-3.5 h-3.5 mr-2 shrink-0" />
+                                    <input
+                                        value={ach.link || ''}
+                                        onChange={(e) => {
+                                            const newAch = [...achievements];
+                                            newAch[i].link = e.target.value;
+                                            updateField('achievements', newAch);
+                                        }}
+                                        className="w-full bg-transparent outline-none"
+                                        placeholder="Certificate Link (optional)"
+                                    />
+                                </div>
+                            </div>
+                            <textarea
+                                value={ach.description}
+                                onChange={(e) => {
+                                    const newAch = [...achievements];
+                                    newAch[i].description = e.target.value;
+                                    updateField('achievements', newAch);
+                                }}
+                                className="w-full bg-transparent outline-none text-sm text-white/70 resize-y min-h-[60px]"
+                                placeholder="Describe what you built or learned..."
+                            />
                         </div>
                     ))}
                 </div>

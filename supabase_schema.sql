@@ -10,6 +10,8 @@ create table resumes (
   education jsonb default '[]'::jsonb,
   projects jsonb default '[]'::jsonb,
   socials jsonb default '[]'::jsonb,
+  achievements jsonb default '[]'::jsonb,
+  avatar_url text,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

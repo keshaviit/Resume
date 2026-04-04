@@ -1,7 +1,8 @@
-import { Plus, Clock, Edit2 } from 'lucide-react';
+import { Plus, Clock, Edit2, Trash2 } from 'lucide-react';
 import { useHistoryStore } from '../../store/useHistoryStore';
 import type { SavedResume } from '../../store/useHistoryStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
 
 interface Props {
     onCreateNew: () => void;
@@ -9,10 +10,25 @@ interface Props {
 }
 
 export function Dashboard({ onCreateNew, onEditResume }: Props) {
-    const { resumes } = useHistoryStore();
+    const { resumes, deleteResume } = useHistoryStore();
+    const isAtLimit = resumes.length >= 2;
+
+    const handleDelete = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        if (confirm('Are you sure you want to permanently delete this resume? The public link will become broken.')) {
+            // Delete locally
+            deleteResume(id);
+            // Optionally delete from remote db so shared link is removed
+            try {
+                await supabase.from('resumes').delete().eq('id', id);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    };
 
     return (
-        <div className="w-full h-full bg-[#050505] text-white p-12 overflow-y-auto">
+        <div className="w-full h-full bg-[#050505] text-white p-12 overflow-y-auto custom-scrollbar">
             <div className="max-w-6xl mx-auto space-y-12">
 
                 <header>
@@ -20,18 +36,27 @@ export function Dashboard({ onCreateNew, onEditResume }: Props) {
                     <p className="text-white/50">Select a resume to update its details, or create a brand new one.</p>
                 </header>
 
+                {isAtLimit && (
+                    <div className="bg-purple-500/10 border border-purple-500/30 text-purple-300 p-4 rounded-xl flex items-center justify-between">
+                        <span className="font-medium">You have reached the maximum free limit of 2 resumes.</span>
+                        <span className="text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full border border-white/10">Free Tier</span>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {/* Create New Card */}
                     <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={onCreateNew}
-                        className="h-64 rounded-3xl border-2 border-dashed border-white/20 bg-white/5 hover:bg-white/10 hover:border-cyan-500/50 flex flex-col items-center justify-center cursor-pointer transition-all neon-glow group"
+                        whileHover={!isAtLimit ? { scale: 1.02 } : {}}
+                        whileTap={!isAtLimit ? { scale: 0.98 } : {}}
+                        onClick={() => { if (!isAtLimit) onCreateNew(); }}
+                        className={`h-64 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${isAtLimit ? 'border-white/5 bg-white/[0.02] cursor-not-allowed opacity-50' : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-cyan-500/50 cursor-pointer neon-glow group'}`}
                     >
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <Plus className="w-8 h-8 text-cyan-400 group-hover:text-cyan-300" />
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-transform ${isAtLimit ? 'bg-white/5' : 'bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 group-hover:scale-110'}`}>
+                            <Plus className={`w-8 h-8 ${isAtLimit ? 'text-white/20' : 'text-cyan-400 group-hover:text-cyan-300'}`} />
                         </div>
-                        <span className="font-heading font-bold text-lg text-white/80 group-hover:text-white">Create New Resume</span>
+                        <span className={`font-heading font-bold text-lg ${isAtLimit ? 'text-white/20' : 'text-white/80 group-hover:text-white'}`}>
+                            {isAtLimit ? 'Limit Reached' : 'Create New Resume'}
+                        </span>
                     </motion.div>
 
                     {/* Previous Resumes */}
@@ -41,12 +66,21 @@ export function Dashboard({ onCreateNew, onEditResume }: Props) {
                                 key={resume.id}
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
                                 className="h-64 rounded-3xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-purple-500/30 p-8 flex flex-col justify-between relative cursor-pointer group"
                                 onClick={() => onEditResume(resume.id, resume.data)}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
+                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl pointer-events-none" />
 
-                                <div className="relative z-10">
+                                <button 
+                                    onClick={(e) => handleDelete(e, resume.id)}
+                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all z-20"
+                                    title="Delete Resume"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+
+                                <div className="relative z-10 pr-10">
                                     <div className="px-3 py-1 inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full mb-4 border border-cyan-500/20">
                                         <Clock className="w-3 h-3" />
                                         {new Date(resume.lastUpdated).toLocaleDateString()}
@@ -63,7 +97,7 @@ export function Dashboard({ onCreateNew, onEditResume }: Props) {
                                     <button
                                         className="flex items-center gap-2 text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
                                         onClick={(e) => {
-                                            e.stopPropagation(); // prevent double triggering
+                                            e.stopPropagation();
                                             onEditResume(resume.id, { ...resume.data, activeId: resume.id });
                                         }}
                                     >
