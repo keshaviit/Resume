@@ -92,6 +92,64 @@ function ProjectCard3D({ proj, isTop }: { proj: any, isTop: boolean }) {
     );
 }
 
+// A specialized 3D Card component for About Me
+function AboutCard3D({ summary, name, avatar_url, isLight }: { summary: string, name: string, avatar_url: string, isLight: boolean }) {
+    const ref = useRef<HTMLDivElement>(null);
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const rotateX = useTransform(y, [-100, 100], [5, -5]);
+    const rotateY = useTransform(x, [-100, 100], [-5, 5]);
+
+    const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (!ref.current) return;
+        const rect = ref.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        x.set(event.clientX - centerX);
+        y.set(event.clientY - centerY);
+    };
+
+    const handleMouseLeave = () => {
+        x.set(0);
+        y.set(0);
+    };
+
+    return (
+        <section id="about" className="w-full flex justify-center items-center py-24 px-4 md:px-12 relative z-10" style={{ perspective: 1200 }}>
+            <motion.div
+                ref={ref}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                whileHover={{ scale: 1.01 }}
+                className={`max-w-6xl w-full relative rounded-[2rem] md:rounded-[3rem] border overflow-hidden flex flex-col md:flex-row shadow-2xl transition-all ${isLight ? 'bg-white/80 border-slate-200' : 'bg-gradient-to-br from-purple-900/20 via-[#0a0b14] to-cyan-900/10 border-purple-500/20 shadow-[0_0_50px_rgba(168,85,247,0.15)] backdrop-blur-md'}`}
+            >
+                {/* Image Section */}
+                {avatar_url && (
+                    <div style={{ transform: "translateZ(40px)" }} className={`w-full md:w-2/5 p-8 md:p-12 flex items-center justify-center ${isLight ? 'bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200' : 'bg-black/20 border-b md:border-b-0 md:border-r border-white/5'}`}>
+                        <div className={`w-full aspect-square rounded-full overflow-hidden shadow-2xl relative group ${isLight ? 'border-8 border-white' : 'border border-cyan-500/30 shadow-[0_0_40px_rgba(34,211,238,0.2)]'}`}>
+                            {!isLight && <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/20 to-purple-500/20 mix-blend-overlay z-10 transition-opacity opacity-100 group-hover:opacity-0" />}
+                            <img src={avatar_url} alt={name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                        </div>
+                    </div>
+                )}
+                
+                {/* Text section */}
+                <div style={{ transform: "translateZ(50px)" }} className="flex-1 p-8 md:p-16 flex flex-col justify-center">
+                    <div className="flex items-center gap-4 mb-8">
+                        <Star className={`w-10 h-10 ${isLight ? 'text-amber-400' : 'text-cyan-400'}`} />
+                        <h2 className={`text-4xl md:text-5xl font-heading font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>About Me</h2>
+                    </div>
+                    <p className={`text-xl md:text-2xl leading-relaxed italic ${isLight ? 'text-slate-600' : 'text-white/80'}`}>
+                        "{summary || 'Your impactful summary goes here...'}"
+                    </p>
+                </div>
+            </motion.div>
+        </section>
+    );
+}
+
 export function DirectorsCut() {
     const { name, role, summary, skills, projects, experience, socials, avatar_url, achievements, theme } = useResumeStore();
 
@@ -130,111 +188,127 @@ export function DirectorsCut() {
                 </ul>
             </nav>
 
-            {/* Portfolio Header Canvas */}
-            <section id="hero" className="min-h-[40vh] flex flex-col justify-center px-12 relative overflow-hidden pt-20 pb-12 z-10">
-                <div className="z-10 relative">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-                        className={`inline-block px-4 py-1.5 rounded-full border text-sm font-medium mb-6 shadow-sm ${isLight ? 'bg-cyan-100 border-cyan-200 text-cyan-800' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]'}`}
-                    >
-                        {role || 'Professional Role'}
-                    </motion.div>
+            {/* Massive Typography Hero Section based on Mockup */}
+            <section id="hero" className="min-h-screen flex flex-col px-6 md:px-16 relative overflow-hidden pt-20 pb-12 z-10">
+                {/* Huge Watermark Background Text */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none z-0">
+                    <h1 className={`text-[20vw] md:text-[25vw] font-black tracking-tighter opacity-[0.03] ${isLight ? 'text-slate-900' : 'text-white'} whitespace-nowrap`}>
+                        PORTFOLIO
+                    </h1>
+                </div>
+
+                {/* Main Content Layout */}
+                <div className="relative z-10 w-full max-w-7xl mx-auto flex-1 flex flex-col justify-center">
                     
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-                        className="text-6xl md:text-8xl font-heading font-bold tracking-tight leading-tight mb-8"
-                    >
-                        I'm <span className={`bg-clip-text text-transparent ${isLight ? 'bg-gradient-to-r from-slate-900 via-blue-700 to-cyan-600' : 'bg-gradient-to-r from-white via-purple-200 to-cyan-200'}`}>{name || 'Your Name'}</span>
-                    </motion.h1>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
-                        className="flex items-center space-x-4"
-                    >
-                        <button 
-                            className={`px-8 py-4 font-semibold rounded-xl transition-colors ${isLight ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-white text-black hover:bg-white/90'}`}
-                            onClick={() => {
-                                const linkedIn = socials?.find(s => s.platform.toLowerCase() === 'linkedin');
-                                if (linkedIn && linkedIn.link) {
-                                    window.open(linkedIn.link, '_blank');
-                                } else {
-                                    window.location.href = `mailto:?subject=Hello ${name}&body=I saw your portfolio and would like to connect!`;
-                                }
-                            }}
-                        >
-                            Contact Me
-                        </button>
-                        <button 
-                            className={`px-8 py-4 border rounded-xl hover:bg-white/10 transition-colors backdrop-blur-sm ${isLight ? 'border-slate-300 text-slate-800 hover:bg-slate-100' : 'border-white/20 text-white'}`}
-                        >
-                            <a href="#about">About Me</a>
-                        </button>
-                    </motion.div>
-
-                    {/* Socials Row */}
-                    {socials && socials.length > 0 && (
+                    {/* Left side content wrapper */}
+                    <div className="w-full md:w-1/2 flex flex-col z-20 mt-12 md:mt-0">
+                        {/* Stats Row */}
                         <motion.div 
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}
-                            className="mt-8 flex items-center gap-4"
+                            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+                            className="flex items-center gap-12 md:gap-20 mb-16"
                         >
-                            {socials.map(social => {
-                                let Icon = null;
-                                const plat = social.platform.toLowerCase();
-                                if (plat.includes('linkedin')) {
-                                    Icon = <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>;
-                                } else if (plat.includes('instagram')) {
-                                    Icon = <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069v-2.163zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>;
-                                } else if (plat.includes('leetcode')) {
-                                    Icon = <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M13.483 0a1.374 1.374 0 0 0-.961.438L7.116 6.226l-3.854 4.126a5.266 5.266 0 0 0-1.209 2.104 5.35 5.35 0 0 0-.125.513 5.527 5.527 0 0 0 .062 2.362 5.83 5.83 0 0 0 .349 1.017 5.939 5.939 0 0 0 1.271 1.818l4.277 4.193.039.038c2.248 2.165 5.852 2.133 8.063-.074l2.396-2.392c.54-.54.54-1.414.003-1.955a1.378 1.378 0 0 0-1.951-.003l-2.396 2.392a3.021 3.021 0 0 1-4.205.038l-.02-.019-4.276-4.193c-.652-.64-.972-1.469-.948-2.263a2.68 2.68 0 0 1 .066-.523 2.545 2.545 0 0 1 .619-1.164L9.13 8.114c1.058-1.134 3.204-1.27 4.43-.278l3.501 2.831c.593.48 1.461.387 1.956-.207a1.384 1.384 0 0 0-.207-1.953l-3.5-2.831c-2.226-1.799-5.366-1.374-7.337.814l-2.316 2.576H19.28c.76 0 1.376-.616 1.376-1.376 0-.76-.616-1.376-1.376-1.376H4.21l1.554-1.727L11.171 1.42c.523-.561 1.392-.583 1.942-.051l1.637 1.603a1.37 1.37 0 0 0 1.905-.035 1.378 1.378 0 0 0-.036-1.948L14.981.427A1.376 1.376 0 0 0 13.483 0zm-1.848 16.513c-.76 0-1.375.616-1.375 1.376 0 .76.616 1.376 1.375 1.376h5.836c.76 0 1.376-.616 1.376-1.376 0-.76-.616-1.376-1.376-1.376h-5.836z" /></svg>;
-                                } else {
-                                    Icon = <Globe className="w-5 h-5" />;
-                                }
-
-                                return (
-                                    <a 
-                                        key={social.id}
-                                        href={social.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={`p-3 border rounded-full transition-all hover:scale-110 flex items-center justify-center ${isLight ? 'bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200' : 'bg-white/5 border-white/10 hover:bg-white/20 hover:border-white/30 text-white/70 hover:text-white'}`}
-                                        title={social.platform}
-                                    >
-                                        {Icon}
-                                    </a>
-                                );
-                            })}
+                            <div>
+                                <h3 className={`text-5xl md:text-6xl font-light mb-2 ${isLight ? 'text-slate-800' : 'text-white'}`}>
+                                    +{projects.length > 0 ? projects.length : '10'}
+                                </h3>
+                                <p className={`text-sm font-medium tracking-wide uppercase ${isLight ? 'text-slate-400' : 'text-white/40'}`}>
+                                    Projects Completed
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className={`text-5xl md:text-6xl font-light mb-2 ${isLight ? 'text-slate-800' : 'text-white'}`}>
+                                    +{experience.length > 0 ? experience.length : '5'}
+                                </h3>
+                                <p className={`text-sm font-medium tracking-wide uppercase ${isLight ? 'text-slate-400' : 'text-white/40'}`}>
+                                    Years Experience
+                                </p>
+                            </div>
                         </motion.div>
+
+                        {/* Hello Text block */}
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}>
+                            <h2 className={`text-8xl md:text-[10rem] font-light tracking-tighter leading-none mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                                Hello
+                            </h2>
+                            <p className={`text-xl md:text-2xl font-light flex items-center gap-4 ${isLight ? 'text-slate-600' : 'text-white/70'}`}>
+                                <span className={`w-8 h-px ${isLight ? 'bg-slate-900' : 'bg-white'}`}></span> 
+                                It's {name || 'You'}, a {role || 'Wizard'}
+                            </p>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}
+                            className="mt-16 flex items-center space-x-6"
+                        >
+                            <button 
+                                className={`px-8 py-4 font-semibold rounded-full transition-all hover:scale-105 active:scale-95 ${isLight ? 'bg-slate-900 text-white shadow-xl hover:shadow-2xl' : 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]'}`}
+                                onClick={() => {
+                                    const linkedIn = socials?.find(s => s.platform.toLowerCase() === 'linkedin');
+                                    if (linkedIn && linkedIn.link) window.open(linkedIn.link, '_blank');
+                                    else window.location.href = `mailto:?subject=Hello ${name}&body=I saw your portfolio and would like to connect!`;
+                                }}
+                            >
+                                Contact Me
+                            </button>
+                            
+                            {/* Social Icons inside Hero */}
+                            {socials && socials.length > 0 && (
+                                <div className="flex items-center gap-4 ml-4">
+                                    {socials.map(social => {
+                                        let Icon = null;
+                                        const plat = social.platform.toLowerCase();
+                                        if (plat.includes('linkedin')) Icon = <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>;
+                                        else if (plat.includes('instagram')) Icon = <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069v-2.163zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>;
+                                        else if (plat.includes('leetcode')) Icon = <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M13.483 0a1.374 1.374 0 0 0-.961.438L7.116 6.226l-3.854 4.126a5.266 5.266 0 0 0-1.209 2.104 5.35 5.35 0 0 0-.125.513 5.527 5.527 0 0 0 .062 2.362 5.83 5.83 0 0 0 .349 1.017 5.939 5.939 0 0 0 1.271 1.818l4.277 4.193.039.038c2.248 2.165 5.852 2.133 8.063-.074l2.396-2.392c.54-.54.54-1.414.003-1.955a1.378 1.378 0 0 0-1.951-.003l-2.396 2.392a3.021 3.021 0 0 1-4.205.038l-.02-.019-4.276-4.193c-.652-.64-.972-1.469-.948-2.263a2.68 2.68 0 0 1 .066-.523 2.545 2.545 0 0 1 .619-1.164L9.13 8.114c1.058-1.134 3.204-1.27 4.43-.278l3.501 2.831c.593.48 1.461.387 1.956-.207a1.384 1.384 0 0 0-.207-1.953l-3.5-2.831c-2.226-1.799-5.366-1.374-7.337.814l-2.316 2.576H19.28c.76 0 1.376-.616 1.376-1.376 0-.76-.616-1.376-1.376-1.376H4.21l1.554-1.727L11.171 1.42c.523-.561 1.392-.583 1.942-.051l1.637 1.603a1.37 1.37 0 0 0 1.905-.035 1.378 1.378 0 0 0-.036-1.948L14.981.427A1.376 1.376 0 0 0 13.483 0zm-1.848 16.513c-.76 0-1.375.616-1.375 1.376 0 .76.616 1.376 1.375 1.376h5.836c.76 0 1.376-.616 1.376-1.376 0-.76-.616-1.376-1.376-1.376h-5.836z" /></svg>;
+                                        else Icon = <Globe className="w-5 h-5" />;
+
+                                        return (
+                                            <a 
+                                                key={social.id}
+                                                href={social.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={`p-3 rounded-full transition-all hover:scale-110 flex items-center justify-center ${isLight ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-white/5 text-white/70 hover:bg-white/20 hover:text-white'}`}
+                                                title={social.platform}
+                                            >
+                                                {Icon}
+                                            </a>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </motion.div>
+                    </div>
+
+                    {/* Massive bottom-anchored Avatar component matching image */}
+                    {avatar_url && (
+                        <div className="absolute bottom-0 right-0 md:right-1/12 lg:right-1/4 w-full md:w-[600px] h-[70vh] pointer-events-none z-10 flex items-end justify-center">
+                            <motion.img 
+                                initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, type: "spring", stiffness: 50 }}
+                                src={avatar_url} 
+                                alt={name} 
+                                className={`w-full max-h-[85vh] object-contain object-bottom pointer-events-auto ${!isLight && 'drop-shadow-[0_0_30px_rgba(168,85,247,0.3)]'}`}
+                                style={{ filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.15))" }}
+                            />
+                        </div>
                     )}
                 </div>
-            </section>
 
-            {/* Huge 'About Me' Block */}
-            <section id="about" className="px-12 py-24 relative z-10 w-full flex flex-col md:flex-row items-center gap-16 border-t border-white/5">
-                {avatar_url && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9, rotate: -5 }} 
-                        whileInView={{ opacity: 1, scale: 1, rotate: 0 }} 
-                        viewport={{ once: true, margin: "-100px" }}
-                        className={`w-64 h-64 md:w-80 md:h-80 rounded-3xl overflow-hidden shrink-0 ${isLight ? 'border-8 border-white shadow-xl rotate-3' : 'border focus-border shadow-2xl relative'}`}
-                    >
-                        {!isLight && <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/20 to-purple-500/20 mix-blend-overlay z-10" />}
-                        <img src={avatar_url} alt={name} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
-                    </motion.div>
-                )}
-                <div className="flex-1 max-w-3xl">
-                    <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-                        <div className="flex items-center gap-3 mb-6">
-                            <Star className={`w-8 h-8 ${isLight?'text-amber-400':'text-cyan-400'}`} />
-                            <h2 className="text-4xl md:text-5xl font-heading font-bold">About Me</h2>
-                        </div>
-                        <p className={`text-xl md:text-2xl leading-relaxed italic ${isLight ? 'text-slate-600' : 'text-white/80'}`}>
-                            "{summary || 'Your impactful summary goes here...'}"
-                        </p>
-                    </motion.div>
+                {/* Bottom Scroll Indicator matching Image */}
+                <div className={`absolute bottom-8 right-12 z-20 flex items-center gap-2 text-sm font-medium ${isLight ? 'text-slate-500' : 'text-white/40'}`}>
+                    <span>Scroll down</span>
+                    <motion.div animate={{ y: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 2 }}>↓</motion.div>
+                </div>
+                
+                {/* Left side text vertical matching image */}
+                <div className={`absolute left-0 bottom-24 z-20 -rotate-90 origin-bottom-left flex items-center gap-4 text-xs tracking-[0.2em] uppercase font-bold ${isLight ? 'text-slate-400' : 'text-white/30'}`}>
+                    <span>{role || 'Product Designer'}</span>
+                    <span className="w-8 h-px bg-current"></span>
+                    <span>{new Date().getFullYear()}</span>
                 </div>
             </section>
 
-            {/* Skills Badges  */}
+            <AboutCard3D name={name} summary={summary} avatar_url={avatar_url} isLight={isLight} />
             <section id="skills" className="px-12 py-12 border-t border-b border-white/5 bg-white/[0.01]">
                 <div className="flex flex-wrap gap-3">
                     {uniqueSkills.map((skill, idx) => (
