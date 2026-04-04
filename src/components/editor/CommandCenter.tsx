@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useResumeStore } from '../../store/useResumeStore';
-import { Wand2, User, Briefcase, GraduationCap, Code, X, Plus, Trash2, Link, Globe, Trophy, Image } from 'lucide-react';
+import { Wand2, User, Briefcase, GraduationCap, Code, X, Plus, Trash2, Link, Globe, Trophy, Image, Loader2 } from 'lucide-react';
 import { useAutoSave } from '../../hooks/useAutoSave';
+import { supabase } from '../../lib/supabase';
 
 export function CommandCenter() {
     useAutoSave();
     const { name, role, summary, skills, projects, experience, socials, avatar_url, logo_url, achievements, updateField } = useResumeStore();
     const [newSkill, setNewSkill] = useState('');
+    const [uploadingField, setUploadingField] = useState<string | null>(null);
 
     const handleAddSkill = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && newSkill.trim()) {
@@ -15,14 +17,33 @@ export function CommandCenter() {
         }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'avatar_url' | 'logo_url') => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'avatar_url' | 'logo_url') => {
         const file = e.target.files?.[0];
-        if (file) {
+        if (!file) return;
+
+        setUploadingField(field);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const userId = session?.user?.id || 'anonymous';
+            const ext = file.name.split('.').pop();
+            const filePath = `${userId}/${field}_${Date.now()}.${ext}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('portfolio-images')
+                .upload(filePath, file, { upsert: true, contentType: file.type });
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage.from('portfolio-images').getPublicUrl(filePath);
+            updateField(field, data.publicUrl);
+        } catch (err) {
+            console.error('Upload failed:', err);
+            // Fallback to base64 so it still works locally
             const reader = new FileReader();
-            reader.onloadend = () => {
-                updateField(field, reader.result as string);
-            };
+            reader.onloadend = () => updateField(field, reader.result as string);
             reader.readAsDataURL(file);
+        } finally {
+            setUploadingField(null);
         }
     };
 
@@ -65,9 +86,9 @@ export function CommandCenter() {
                                         className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
                                         placeholder="Paste URL..."
                                     />
-                                    <label className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded cursor-pointer transition-colors whitespace-nowrap border border-white/20">
-                                        Upload
-                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'avatar_url')} />
+                                                    <label className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors whitespace-nowrap border border-white/20 flex items-center gap-1 ${uploadingField === 'avatar_url' ? 'bg-cyan-500/30 text-cyan-300' : 'bg-white/10 hover:bg-white/20'}`}>
+                                        {uploadingField === 'avatar_url' ? <><Loader2 className="w-3 h-3 animate-spin" /> Saving...</> : 'Upload'}
+                                        <input type="file" accept="image/*" className="hidden" disabled={!!uploadingField} onChange={(e) => handleImageUpload(e, 'avatar_url')} />
                                     </label>
                                 </div>
                             </div>
@@ -85,9 +106,9 @@ export function CommandCenter() {
                                         className="w-full bg-transparent outline-none py-1 text-sm transition-colors text-purple-300"
                                         placeholder="Paste URL..."
                                     />
-                                    <label className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded cursor-pointer transition-colors whitespace-nowrap border border-white/20">
-                                        Upload
-                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'logo_url')} />
+                                    <label className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors whitespace-nowrap border border-white/20 flex items-center gap-1 ${uploadingField === 'logo_url' ? 'bg-cyan-500/30 text-cyan-300' : 'bg-white/10 hover:bg-white/20'}`}>
+                                        {uploadingField === 'logo_url' ? <><Loader2 className="w-3 h-3 animate-spin" /> Saving...</> : 'Upload'}
+                                        <input type="file" accept="image/*" className="hidden" disabled={!!uploadingField} onChange={(e) => handleImageUpload(e, 'logo_url')} />
                                     </label>
                                 </div>
                             </div>
