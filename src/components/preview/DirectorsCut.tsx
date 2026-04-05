@@ -263,7 +263,7 @@ export function DirectorsCut() {
                 </div>
 
                 {/* Right: Typography + Social Icons */}
-                <div className="w-full md:w-1/2 min-h-[50vh] md:h-screen flex flex-col justify-center px-10 md:px-16 lg:px-24 py-16 relative pointer-events-auto overflow-hidden">
+                <div className="w-full md:w-1/2 min-h-[50vh] md:min-h-screen flex flex-col justify-center px-10 md:px-16 lg:px-24 pt-32 md:pt-40 pb-16 relative pointer-events-auto overflow-hidden">
                     <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
                         {/* Role badge */}
                         <div className={`flex items-center gap-4 mb-8 text-xs tracking-widest uppercase font-bold ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
