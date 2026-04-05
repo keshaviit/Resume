@@ -14,7 +14,7 @@ export function PublicProfile({ id }: { id: string }) {
                 const { data, error } = await supabase
                     .from('resumes')
                     .select('*')
-                    .eq('user_id', id)
+                    .eq('id', id)
                     .maybeSingle();
 
                 if (error || !data) {

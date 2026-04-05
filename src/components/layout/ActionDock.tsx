@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Rocket, CheckCircle2, Home } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { Download, Share2, CheckCircle2, Home } from 'lucide-react';
+import { useResumeStore } from '../../store/useResumeStore';
 
 interface Props {
     onGoHome?: () => void;
@@ -15,9 +15,9 @@ export function ActionDock({ onGoHome }: Props) {
         const newWindow = window.open('', '_blank');
 
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user?.id) {
-                const publicUrl = `${window.location.origin}/?p=${session.user.id}`;
+            const activeId = useResumeStore.getState().activeId;
+            if (activeId) {
+                const publicUrl = `${window.location.origin}/?p=${activeId}`;
 
                 // Navigate the new tab to the actual url
                 if (newWindow) newWindow.location.href = publicUrl;
@@ -77,7 +77,7 @@ export function ActionDock({ onGoHome }: Props) {
                         className="flex justify-center items-center p-0 w-14 h-14 rounded-full text-white/70 hover:text-purple-300 hover:bg-white/5 hover:scale-110 active:scale-95 transition-all outline-none"
                         title="Copy Public Profile Link"
                     >
-                        {copied ? <CheckCircle2 className="w-5 h-5 text-green-400 pointer-events-none" /> : <Rocket className="w-5 h-5 pointer-events-none" />}
+                        {copied ? <CheckCircle2 className="w-5 h-5 text-green-400 pointer-events-none" /> : <Share2 className="w-5 h-5 pointer-events-none" />}
                     </button>
 
                     <AnimatePresence>

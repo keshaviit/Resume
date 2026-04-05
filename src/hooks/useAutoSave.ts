@@ -44,16 +44,12 @@ export function useAutoSave() {
                             payload.user_id = session.user.id;
                             delete payload.theme; // dont sync theme to supabase because schema lacks it
 
-                            // Check if row exists first. Since public sharing relies on user_id, 
-                            // we always sync the ACTIVE one to Supabase's single row for this user.
-                            const { data: existing } = await supabase.from('resumes').select('id').eq('user_id', session.user.id).maybeSingle();
-
-                            if (existing) {
-                                // UPDATE existing row
-                                await supabase.from('resumes').update(payload).eq('user_id', session.user.id);
-                            } else {
-                                // INSERT new row
-                                await supabase.from('resumes').insert(payload);
+                            // Ensure each resume gets a unique ID for sharing.
+                            const currentState = useResumeStore.getState();
+                            if (currentState.activeId) {
+                                payload.id = currentState.activeId;
+                                // Upsert automatically updates if id exists or inserts if it doesn't.
+                                await supabase.from('resumes').upsert(payload);
                             }
                         }
                     } catch (e) {
@@ -87,7 +83,7 @@ export function useAutoSave() {
                     isSaving.current = true;
                     useResumeStore.setState({ isSyncing: false });
                     isSaving.current = false;
-                }, 1500);
+                }, 5000); // Increased debounce to 5s to reduce server load
             }
             lastSnapshot = currentSnapshot;
         });

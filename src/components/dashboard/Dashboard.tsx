@@ -1,4 +1,4 @@
-import { Plus, Clock, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Clock, Edit2, Trash2, Share2 } from 'lucide-react';
 import { useHistoryStore } from '../../store/useHistoryStore';
 import type { SavedResume } from '../../store/useHistoryStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -72,13 +72,27 @@ export function Dashboard({ onCreateNew, onEditResume }: Props) {
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl pointer-events-none" />
 
-                                <button 
-                                    onClick={(e) => handleDelete(e, resume.id)}
-                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all z-20"
-                                    title="Delete Resume"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+                                <div className="absolute top-6 right-6 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all z-20">
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const publicUrl = `${window.location.origin}/?p=${resume.id}`;
+                                            navigator.clipboard.writeText(publicUrl);
+                                            alert('Public link copied to clipboard!');
+                                        }}
+                                        className="p-2 rounded-full bg-white/5 hover:bg-cyan-500/20 text-white/40 hover:text-cyan-400 transition-all"
+                                        title="Copy Share Link"
+                                    >
+                                        <Share2 className="w-4 h-4" />
+                                    </button>
+                                    <button 
+                                        onClick={(e) => handleDelete(e, resume.id)}
+                                        className="p-2 rounded-full bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all"
+                                        title="Delete Resume"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
 
                                 <div className="relative z-10 pr-10">
                                     <div className="px-3 py-1 inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full mb-4 border border-cyan-500/20">
