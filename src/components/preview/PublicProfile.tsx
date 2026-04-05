@@ -30,6 +30,12 @@ export function PublicProfile({ id }: { id: string }) {
                 if (data.experience) updateField('experience', data.experience);
                 if (data.education) updateField('education', data.education);
                 if (data.projects) updateField('projects', data.projects);
+                if (data.socials) updateField('socials', data.socials);
+                if (data.achievements) updateField('achievements', data.achievements);
+                // avatar_url is critical — load even if empty string to clear placeholder
+                updateField('avatar_url', data.avatar_url || '');
+                updateField('logo_url', data.logo_url || '');
+                updateField('theme', 'cyberpunk'); // public always starts in dark mode
             } catch (err) {
                 setError('Failed to load profile.');
             } finally {

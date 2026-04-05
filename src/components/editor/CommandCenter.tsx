@@ -4,6 +4,45 @@ import { Wand2, User, Briefcase, GraduationCap, Code, X, Plus, Trash2, Link, Glo
 import { useAutoSave } from '../../hooks/useAutoSave';
 import { supabase } from '../../lib/supabase';
 
+const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new globalThis.Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1000;
+                const MAX_HEIGHT = 1000;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return resolve(file);
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else resolve(file);
+                }, 'image/jpeg', 0.7);
+            };
+            img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    });
+};
+
 export function CommandCenter() {
     useAutoSave();
     const { name, role, summary, skills, projects, experience, socials, avatar_url, logo_url, achievements, updateField } = useResumeStore();
@@ -25,12 +64,13 @@ export function CommandCenter() {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const userId = session?.user?.id || 'anonymous';
-            const ext = file.name.split('.').pop();
+            const compressedFile = await compressImage(file);
+            const ext = 'jpg'; // Compressed image is a jpeg
             const filePath = `${userId}/${field}_${Date.now()}.${ext}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('portfolio-images')
-                .upload(filePath, file, { upsert: true, contentType: file.type });
+                .upload(filePath, compressedFile, { upsert: true, contentType: 'image/jpeg' });
 
             if (uploadError) throw uploadError;
 

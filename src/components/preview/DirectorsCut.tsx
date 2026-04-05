@@ -7,45 +7,21 @@ import React, { useRef, useMemo } from 'react';
 const SEEDED_POSITIONS = Array.from({ length: 40 }, () => ({
     x: (Math.random() - 0.5) * 700,
     rot: (Math.random() - 0.5) * 180,
-    floatY: 8 + Math.random() * 14,
-    floatDuration: 2.5 + Math.random() * 2,
+    floatY: 5 + Math.random() * 8, // Softer height
+    floatDuration: 4.5 + Math.random() * 3, // Slower duration for eye relaxation
     floatDelay: Math.random() * 2,
 }));
 
-// --- Lighter, brighter, more attractive pastel sphere palette ---
+// --- Relaxing Pastel Sphere Palette ---
 const SPHERE_COLORS = [
-    {
-        bg: 'radial-gradient(circle at 32% 28%, #c8ffe0, #4ade80 40%, #16a34a 75%, #064e1e)',
-        shadow: 'rgba(74,222,128,0.55)',
-    },
-    {
-        bg: 'radial-gradient(circle at 32% 28%, #fff3c0, #facc15 40%, #ca8a04 75%, #713f07)',
-        shadow: 'rgba(250,204,21,0.55)',
-    },
-    {
-        bg: 'radial-gradient(circle at 32% 28%, #ffd6d0, #f87171 40%, #dc2626 75%, #7f1d1d)',
-        shadow: 'rgba(248,113,113,0.55)',
-    },
-    {
-        bg: 'radial-gradient(circle at 32% 28%, #c0d8ff, #60a5fa 40%, #2563eb 75%, #1e3a8a)',
-        shadow: 'rgba(96,165,250,0.55)',
-    },
-    {
-        bg: 'radial-gradient(circle at 32% 28%, #e8d0ff, #c084fc 40%, #9333ea 75%, #4a1078)',
-        shadow: 'rgba(192,132,252,0.55)',
-    },
-    {
-        bg: 'radial-gradient(circle at 32% 28%, #c0f5f5, #22d3ee 40%, #0891b2 75%, #083344)',
-        shadow: 'rgba(34,211,238,0.55)',
-    },
-    {
-        bg: 'radial-gradient(circle at 32% 28%, #ffd6f0, #f472b6 40%, #db2777 75%, #831843)',
-        shadow: 'rgba(244,114,182,0.55)',
-    },
-    {
-        bg: 'radial-gradient(circle at 32% 28%, #ffe0c0, #fb923c 40%, #ea580c 75%, #7c2d12)',
-        shadow: 'rgba(251,146,60,0.55)',
-    },
+    { bg: 'radial-gradient(circle at 32% 28%, #e0f2f1, #80cbc4 40%, #26a69a 75%, #004d40)', shadow: 'rgba(128,203,196,0.35)' }, // Soft Teal
+    { bg: 'radial-gradient(circle at 32% 28%, #e3f2fd, #90caf9 40%, #42a5f5 75%, #0d47a1)', shadow: 'rgba(144,202,249,0.35)' }, // Soft Blue
+    { bg: 'radial-gradient(circle at 32% 28%, #f3e5f5, #ce93d8 40%, #ab47bc 75%, #4a148c)', shadow: 'rgba(206,147,216,0.35)' }, // Soft Purple
+    { bg: 'radial-gradient(circle at 32% 28%, #fff3e0, #ffcc80 40%, #ffa726 75%, #e65100)', shadow: 'rgba(255,204,128,0.35)' }, // Soft Orange
+    { bg: 'radial-gradient(circle at 32% 28%, #fce4ec, #f48fb1 40%, #ec407a 75%, #880e4f)', shadow: 'rgba(244,143,177,0.35)' }, // Soft Pink
+    { bg: 'radial-gradient(circle at 32% 28%, #e8f5e9, #a5d6a7 40%, #66bb6a 75%, #1b5e20)', shadow: 'rgba(165,214,167,0.35)' }, // Soft Green
+    { bg: 'radial-gradient(circle at 32% 28%, #fffde7, #fff59d 40%, #ffee58 75%, #f57f17)', shadow: 'rgba(255,245,157,0.35)' }, // Soft Yellow
+    { bg: 'radial-gradient(circle at 32% 28%, #efebe9, #bcaaa4 40%, #8d6e63 75%, #3e2723)', shadow: 'rgba(188,170,164,0.35)' }, // Soft Brown
 ];
 
 // SkillsArena — 3D glossy pastel spheres, fall once & float forever
