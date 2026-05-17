@@ -7,6 +7,7 @@ Want to get your own resume up and running on the internet as fast as possible? 
 ---
 
 ## 🚀 Quick Launch (Direct to Vercel)
+Deployment link : https://resume-five-ruddy-44.vercel.app/
 
 The easiest way to get your own version of this website live is to deploy it directly using Vercel.
 
